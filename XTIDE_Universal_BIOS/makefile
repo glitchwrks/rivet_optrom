@@ -43,7 +43,7 @@
 # USE_286                     Use instructions supported by 286 and later (defines USE_UNDOC_INTEL)#
 # USE_386                     Use instructions supported by 386 and later (defines USE_286)        #
 # USE_AT                      Use features supported on AT and later systems (not available on XT) #
-# USE_PS2                     For use with IBM PS/2 machines only (defines USE_AT)                 #
+# USE_PS2                     For use with 286+ IBM PS/2 machines only (defines USE_AT)            #
 # USE_UNDOC_INTEL             Optimizations for Intel CPUs - do NOT use on NEC V20/V30/Sony CPUs   #
 # USE_NEC_V                   Optimizations for use with NEC V20/V30 CPUs only                     #
 # CLD_NEEDED                  Only needed for compatibility with buggy software/BIOSes             #

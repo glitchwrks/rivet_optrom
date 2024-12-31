@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2024 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -27,46 +27,37 @@ SECTION .text
 ;		DS:		RAMVARS segment
 ;	Returns:
 ;		ES:BX:	Ptr to boot sector (if successful)
-;		CF:		Set if boot sector loaded successfully
-;				Cleared if failed to load boot sector
+;		CF:		Cleared if boot sector loaded successfully
+;				(only matters when jumping to
+;				Int19h_JumpToBootSectorInESBXOrRomBoot)
 ;	Corrupts registers:
-;		AX, CX, DH, SI, DI, (DL if failed to read boot sector)
+;		AX, CX, DH, SI, DI
 ;--------------------------------------------------------------------
 BootSector_TryToLoadFromDriveDL_AndBoot:
 	call	DetectPrint_TryToBootFromDL
 	call	BootSector_LoadFirstSectorFromDriveDL
+	inc		dx												; Determine if hard drive or floppy drive without changing the CF
+	dec		dl
 	jnc		SHORT .FirstSectorLoadedToESBX
 
 	; Do not display timeout error (80h) for floppy drives since
 	; it most likely mean no diskette in drive. This way we do not
 	; display error code every time user intends to boot from hard disk
 	; when A then C boot order is used.
-	test	dl, dl
-	js		SHORT .PrintFailedToLoadErrorCode	; Hard Drive
+	js		SHORT .PrintFailedToLoadErrorCode				; Hard Drive
 	cmp		ah, RET_HD_TIMEOUT
-	je		SHORT .ReturnWithCFclearSinceFailedToLoadBootSector
+	je		SHORT BootSector_LoadFirstSectorFromDriveDL.Return
 	cmp		ah, RET_HD_NOMEDIA
-	je		SHORT .ReturnWithCFclearSinceFailedToLoadBootSector
+	je		SHORT BootSector_LoadFirstSectorFromDriveDL.Return
 .PrintFailedToLoadErrorCode:
-	call	DetectPrint_FailedToLoadFirstSector
-	jmp		SHORT .ReturnWithCFclearSinceFailedToLoadBootSector
-
+	jmp		DetectPrint_FailedToLoadFirstSector
 
 .FirstSectorLoadedToESBX:
-	test	dl, dl
-	jns		SHORT .AlwaysBootFromFloppyDriveForBooterGames
-	cmp		WORD [es:bx+510], 0AA55h		; Valid boot sector?
-	jne		SHORT .FirstHardDiskSectorNotBootable
-.AlwaysBootFromFloppyDriveForBooterGames:
-	clc		; Boot Sector loaded successfully
-	jmp		SHORT Int19h_JumpToBootSectorInESBXOrRomBoot
-
-.FirstHardDiskSectorNotBootable:
+	jns		SHORT Int19h_JumpToBootSectorInESBXOrRomBoot	; Don't check for boot sector signature for floppy booter games
+	cmp		WORD [es:bx+510], 0AA55h						; Valid boot sector?
+	je		SHORT Int19h_JumpToBootSectorInESBXOrRomBoot	; With CF cleared
 	mov		si, g_szBootSectorNotFound
-	call	DetectPrint_NullTerminatedStringFromCSSI
-.ReturnWithCFclearSinceFailedToLoadBootSector:
-	clc
-	ret
+	jmp		DetectPrint_NullTerminatedStringFromCSSI
 
 
 ;--------------------------------------------------------------------

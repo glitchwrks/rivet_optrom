@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2023 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2024 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@ IdeCommand_ResetMasterAndSlaveController:	; Unused entrypoint OK
 ; Is now:
 	mov		al, FLG_DEVCONTROL_SRST | FLG_DEVCONTROL_nIEN
 ; ---
+%define IO_SEQUENCE		; Do not modify DX while this is in effect!
 	OUTPUT_AL_TO_IDE_CONTROL_BLOCK_REGISTER		DEVICE_CONTROL_REGISTER_out
 	mov		ax, HSR0_RESET_WAIT_US
 	call	Timer_DelayMicrosecondsFromAX
@@ -51,6 +52,7 @@ IdeCommand_ResetMasterAndSlaveController:	; Unused entrypoint OK
 	mov		al, FLG_DEVCONTROL_nIEN
 ; ---
 	OUTPUT_AL_TO_IDE_CONTROL_BLOCK_REGISTER		DEVICE_CONTROL_REGISTER_out
+%undef IO_SEQUENCE		; DX can be freely modified again.
 	mov		ax, HSR1_RESET_WAIT_US
 	call	Timer_DelayMicrosecondsFromAX
 
@@ -276,6 +278,7 @@ IdeCommand_SelectDrive:
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 OutputSectorCountAndAddress:
+%define IO_SEQUENCE		; Do not modify DX while this is in effect!
 	OUTPUT_AL_TO_IDE_REGISTER	SECTOR_COUNT_REGISTER
 
 	mov		al, ah
@@ -286,6 +289,7 @@ OutputSectorCountAndAddress:
 
 	mov		al, ch
 	OUTPUT_AL_TO_IDE_REGISTER	LBA_HIGH_REGISTER
+%undef IO_SEQUENCE		; DX can be freely modified again.
 	ret
 
 

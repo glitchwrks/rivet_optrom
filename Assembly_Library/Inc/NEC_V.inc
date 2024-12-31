@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2024 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -781,12 +781,14 @@
 ; The ROL4 instruction available on NEC V20/V30 CPUs.
 ;
 ; Rotates the destination four bits to the left via the low nibble of AL.
+; If the destination is AL then the high and low nibbles will be swapped.
 ;
 ; eROL4
 ;	Parameters:
 ;		%1:		8-bit destination (register or memory location)
 ;	Returns:
-;		AL:		The high nibble of %1 in the low nibble of AL
+;		AL:		The low nibble of AL in the high nibble of AL
+;				The high nibble of %1 in the low nibble of AL
 ;		%1:		The low nibble of %1 in the high nibble of %1
 ;				The low nibble of AL in the low nibble of %1
 ;	Corrupts registers:
@@ -862,12 +864,14 @@
 ; The ROR4 instruction available on NEC V20/V30 CPUs.
 ;
 ; Rotates the destination four bits to the right via the low nibble of AL.
+; If the destination is AL then nothing changes.
 ;
 ; eROR4
 ;	Parameters:
 ;		%1:		8-bit destination (register or memory location)
 ;	Returns:
-;		AL:		The low nibble of %1 in the low nibble of AL
+;		AL:		The high nibble of %1 in the high nibble of AL
+;				The low nibble of %1 in the low nibble of AL
 ;		%1:		The high nibble of %1 in the low nibble of %1
 ;				The low nibble of AL in the high nibble of %1
 ;	Corrupts registers:

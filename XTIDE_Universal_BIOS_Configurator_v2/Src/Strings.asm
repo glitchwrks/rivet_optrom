@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2023 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2024 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -65,7 +65,7 @@ g_szErrEepromPolling:		db	"Timeout when polling EEPROM.",LF
 g_szErrEepromVerify:		db	"EEPROM did not return the same byte that was written.",LF
 							db	"EEPROM was not flashed properly!",NULL
 g_szPCFlashSuccessful:		db	"EEPROM was written successfully.",LF
-							db	"Press any key to reboot.",NULL
+							db	"Close dialog to reboot.",NULL
 g_szForeignFlash:			db	"EEPROM was written successfully.",NULL
 
 
@@ -97,12 +97,12 @@ g_szNfoMainLoadStngs:	db	"Load old XTIDE Universal BIOS settings from EEPROM.",N
 g_szNfoMainConfigure:	db	"Configure XTIDE Universal BIOS settings.",NULL
 g_szNfoMainFlash:		db	"Flash loaded BIOS image to EEPROM.",NULL
 g_szNfoMainSave:		db	"Save BIOS changes back to original file from which it was loaded.",NULL
-g_szNfoMainLicense:		db	"XTIDE Universal BIOS and XTIDECFG Copyright (C) 2009-2010 by Tomi Tilli, 2011-2023 by XTIDE Universal BIOS Team."
+g_szNfoMainLicense:		db	"XTIDE Universal BIOS and XTIDECFG Copyright (C) 2009-2010 by Tomi Tilli, 2011-2024 by XTIDE Universal BIOS Team."
 						db	" Released under GNU GPL v2, with ABSOLUTELY NO WARRANTY. Press ENTER for more details...",NULL
 g_szNfoMainHomePage:	db	"Visit http://xtideuniversalbios.org (home page) and http://forum.vcfed.org (support)",NULL
 
 g_szHelpMainLicense:	db	"XTIDE Universal BIOS and XTIDECFG Configuration program are Copyright 2009-2010 by Tomi Tilli,"
-						db	" 2011-2023 by XTIDE Universal BIOS Team. Released under GNU GPL v2. This software comes with ABSOLUTELY NO WARRANTY."
+						db	" 2011-2024 by XTIDE Universal BIOS Team. Released under GNU GPL v2. This software comes with ABSOLUTELY NO WARRANTY."
 						db	" This is free software, and you are welcome to redistribute it under certain conditions."
 						db	" See the LICENSE.TXT file that was included with this distribution,"
 						db	" visit http://www.gnu.org/licenses/ gpl-2.0.html, or visit http://xtideuniversalbios.org.",NULL

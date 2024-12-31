@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2024 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -58,10 +58,11 @@ ALIGN JUMP_ALIGN
 	ret
 
 .PollingError:
-	mov		BYTE [bp+FLASHVARS.flashResult], FLASH_RESULT.PollingTimeoutError
-	ret
+	mov		al, FLASH_RESULT.PollingTimeoutError
+	SKIP2B	f
 .DataVerifyError:
-	mov		BYTE [bp+FLASHVARS.flashResult], FLASH_RESULT.DataVerifyError
+	mov		al, FLASH_RESULT.DataVerifyError
+	mov		[bp+FLASHVARS.flashResult], al
 	ret
 
 

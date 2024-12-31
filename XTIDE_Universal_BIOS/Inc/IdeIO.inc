@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2024 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -36,10 +36,32 @@
 %macro OUTPUT_AL_TO_IDE_REGISTER 1
 %ifndef MODULE_8BIT_IDE	; Standard IDE controllers only
 
-	%ifnidni %1, dx
-		mov		dx, %1
+	%ifdef IO_SEQUENCE
+		%ifndef previous_parameter
+			%ifnidni %1, dx
+				mov		dx, %1
+			%endif
+			add		dx, [di+DPT.wBasePort]
+		%elif previous_parameter + 1 = %1
+			inc		dx
+		%elif previous_parameter - 1 = %1
+			dec		dx
+		%elif previous_parameter = %1
+		%else
+			%ifnidni %1, dx
+				mov		dx, %1
+			%endif
+			add		dx, [di+DPT.wBasePort]
+		%endif
+		%define previous_parameter %1
+
+	%else ; ~IO_SEQUENCE
+		%undef previous_parameter
+		%ifnidni %1, dx
+			mov		dx, %1
+		%endif
+		add		dx, [di+DPT.wBasePort]
 	%endif
-	add		dx, [di+DPT.wBasePort]
 	out		dx, al
 
 %else	; Register translations required
@@ -56,11 +78,35 @@
 %macro OUTPUT_AL_TO_IDE_CONTROL_BLOCK_REGISTER 1
 %ifndef MODULE_8BIT_IDE	; Standard IDE controllers only
 
-	eMOVZX	bx, [di+DPT.bIdevarsOffset]
-	%ifnidni %1, dx
-		mov		dx, %1
+	%ifdef IO_SEQUENCE
+		%ifndef previous_parameter
+			eMOVZX	bx, [di+DPT.bIdevarsOffset]
+			%ifnidni %1, dx
+				mov		dx, %1
+			%endif
+			add		dx, [cs:bx+IDEVARS.wControlBlockPort]
+		%elif previous_parameter + 1 = %1
+			inc		dx
+		%elif previous_parameter - 1 = %1
+			dec		dx
+		%elif previous_parameter = %1
+		%else
+			eMOVZX	bx, [di+DPT.bIdevarsOffset]
+			%ifnidni %1, dx
+				mov		dx, %1
+			%endif
+			add		dx, [cs:bx+IDEVARS.wControlBlockPort]
+		%endif
+		%define previous_parameter %1
+
+	%else ; ~IO_SEQUENCE
+		%undef previous_parameter
+		eMOVZX	bx, [di+DPT.bIdevarsOffset]
+		%ifnidni %1, dx
+			mov		dx, %1
+		%endif
+		add		dx, [cs:bx+IDEVARS.wControlBlockPort]
 	%endif
-	add		dx, [cs:bx+IDEVARS.wControlBlockPort]
 	out		dx, al
 
 %else	; Register translations required

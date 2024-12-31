@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2024 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -140,11 +140,11 @@ AccessDPT_GetLbaSectorCountToBXDXAX:
 ;--------------------------------------------------------------------
 AccessDPT_GetPointerToDRVPARAMStoCSBX:
 	call	AccessDPT_GetIdevarsToCSBX
-	add		bx, BYTE IDEVARS.drvParamsMaster	; CS:BX points to Master Drive DRVPARAMS
+	add		bx, BYTE IDEVARS.drvParamsMaster+DRVPARAMS_size	; CS:BX points to Slave Drive DRVPARAMS
 	test	BYTE [di+DPT.bFlagsLow], FLGL_DPT_SLAVE
-	jz		SHORT .ReturnPointerToDRVPARAMS
-	add		bx, BYTE DRVPARAMS_size				; CS:BX points to Slave Drive DRVPARAMS
-.ReturnPointerToDRVPARAMS:
+	jnz		SHORT .Return
+	sub		bx, BYTE DRVPARAMS_size							; CS:BX points to Master Drive DRVPARAMS
+.Return:
 	ret
 
 

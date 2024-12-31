@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2023 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2024 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -263,36 +263,27 @@ InitializePiovarsInSSBPwithSectorCountInAH:
 	jb		SHORT IdeTransfer_NormalizePointerInESSI
 
 	; Convert ES:SI to physical address
-%ifdef USE_386
-	mov		dx, es
-	xor		ax, ax
-	shld	ax, dx, 4
-	shl		dx, 4
-	add		si, dx
-	adc		al, ah
-	mov		es, ax
-
-%elifdef USE_186
-%ifdef USE_NEC_V
-	mov		dx, es
-	xor		ax, ax
-	eROL4	dl
-	eROL4	dh
-	add		si, dx
-	adc		al, ah
-	mov		es, ax
-
-%else
-	mov		ax, es
-	rol		ax, 4
-	mov		dx, ax
-	and		ax, 0Fh
-	xor		dx, ax
-	add		si, dx
-	adc		al, ah
-	mov		es, ax
-
-%endif
+%ifdef USE_386		; 17 bytes
+	mov		dx, es				; 2
+	xor		ax, ax				; 2
+	shld	ax, dx, 4			; 3
+	shl		dx, 4				; 3
+	add		si, dx				; 2
+	adc		al, ah				; 2
+	mov		es, ax				; 2
+							;------
+							;	 16 cycles on 386
+%elifdef USE_186	; 17 bytes
+	mov		ax, es				; 2
+	rol		ax, 4				; 3
+	mov		dx, ax				; 2
+	and		al, 0F0h			; 2
+	xor		dx, ax				; 2
+	add		si, ax				; 2
+	adc		dl, dh				; 2
+	mov		es, dx				; 2
+							;------
+							;	 17 cycles on 386
 %else ; 808x
 	mov		al, 4
 	mov		dx, es
@@ -300,11 +291,11 @@ InitializePiovarsInSSBPwithSectorCountInAH:
 	rol		dx, cl
 	mov		cx, dx
 	xchg	cx, ax
-	and		ax, 0Fh
+	and		al, 0F0h
 	xor		dx, ax
-	add		si, dx
-	adc		al, ah
-	mov		es, ax
+	add		si, ax
+	adc		dl, dh
+	mov		es, dx
 
 %endif
 
