@@ -6,6 +6,76 @@
 
 
 ;--------------------------------------------------------------------
+; The long (two byte) form of PUSH. Supported by NEC V20/V30.
+;
+; LPUSH
+;	Parameters:
+;		%1:		Any 16 bit general purpose register.
+;	Returns:
+;		Nothing
+;	Corrupts registers:
+;		Nothing
+;--------------------------------------------------------------------
+%macro LPUSH 1.nolist
+	%ifidni		%1, ax
+		db		0FFh, 0F0h
+	%elifidni	%1, cx
+		db		0FFh, 0F1h
+	%elifidni	%1, dx
+		db		0FFh, 0F2h
+	%elifidni	%1, bx
+		db		0FFh, 0F3h
+	%elifidni	%1, sp
+		db		0FFh, 0F4h
+	%elifidni	%1, bp
+		db		0FFh, 0F5h
+	%elifidni	%1, si
+		db		0FFh, 0F6h
+	%elifidni	%1, di
+		db		0FFh, 0F7h
+	%else
+		%error "Invalid parameter passed to LPUSH"
+	%endif
+%endmacro
+
+
+;--------------------------------------------------------------------
+; The long (two byte) form of POP. Not supported by NEC V20/V30.
+; NEC V20/V30 CPU:s will adjust SP but not actually move the contents
+; of the top WORD on the stack to the destination register.
+;
+; LPOP
+;	Parameters:
+;		%1:		Any 16 bit general purpose register.
+;	Returns:
+;		Nothing
+;	Corrupts registers:
+;		Nothing
+;--------------------------------------------------------------------
+%macro LPOP 1.nolist
+	%ifidni		%1, ax
+		db		8Fh, 0C0h
+	%elifidni	%1, cx
+		db		8Fh, 0C1h
+	%elifidni	%1, dx
+		db		8Fh, 0C2h
+	%elifidni	%1, bx
+		db		8Fh, 0C3h
+	%elifidni	%1, sp
+		db		8Fh, 0C4h
+	%elifidni	%1, bp
+		db		8Fh, 0C5h
+	%elifidni	%1, si
+		db		8Fh, 0C6h
+	%elifidni	%1, di
+		db		8Fh, 0C7h
+	%else
+		%error "Invalid parameter passed to LPOP"
+	%endif
+%endmacro
+
+
+;--------------------------------------------------------------------
 ; Skips the immediately following 1 byte instruction by using it
 ; as an immediate value to a dummy instruction.
 ; Destroys the contents of %1.
@@ -20,28 +90,29 @@
 ;--------------------------------------------------------------------
 %macro SKIP1B 1.nolist
 	%ifidni		%1, f
-		db	03Ch					; Opcode byte for CMP AL, <immed>
-		;db	0A8h					; Alt. version TEST AL, <immed>
+		db		03Ch				; Opcode byte for CMP AL, <immed>
+		;db		0A8h				; Alt. version TEST AL, <immed>
 	%elifidni	%1, al
-		db	0B0h					; Opcode byte for MOV AL, <immed>
+		db		0B0h				; Opcode byte for MOV AL, <immed>
 	%elifidni	%1, ah
-		db	0B4h					; Opcode byte for MOV AH, <immed>
+		db		0B4h				; Opcode byte for MOV AH, <immed>
 	%elifidni	%1, bl
-		db	0B3h					; Opcode byte for MOV BL, <immed>
+		db		0B3h				; Opcode byte for MOV BL, <immed>
 	%elifidni	%1, bh
-		db	0B7h					; Opcode byte for MOV BH, <immed>
+		db		0B7h				; Opcode byte for MOV BH, <immed>
 	%elifidni	%1, cl
-		db	0B1h					; Opcode byte for MOV CL, <immed>
+		db		0B1h				; Opcode byte for MOV CL, <immed>
 	%elifidni	%1, ch
-		db	0B5h					; Opcode byte for MOV CH, <immed>
+		db		0B5h				; Opcode byte for MOV CH, <immed>
 	%elifidni	%1, dl
-		db	0B2h					; Opcode byte for MOV DL, <immed>
+		db		0B2h				; Opcode byte for MOV DL, <immed>
 	%elifidni	%1, dh
-		db	0B6h					; Opcode byte for MOV DH, <immed>
+		db		0B6h				; Opcode byte for MOV DH, <immed>
 	%else
 		%error "Invalid parameter passed to SKIP1B"
 	%endif
 %endmacro
+
 
 ;--------------------------------------------------------------------
 ; Skips the immediately following 2 byte instruction by using it
@@ -58,24 +129,24 @@
 ;--------------------------------------------------------------------
 %macro SKIP2B 1.nolist
 	%ifidni		%1, f
-		db	03Dh					; Opcode byte for CMP AX, <immed>
-		;db	0A9h					; Alt. version TEST AX, <immed>
+		db		03Dh				; Opcode byte for CMP AX, <immed>
+		;db		0A9h				; Alt. version TEST AX, <immed>
 	%elifidni	%1, ax
-		db	0B8h					; Opcode byte for MOV AX, <immed>
+		db		0B8h				; Opcode byte for MOV AX, <immed>
 	%elifidni	%1, cx
-		db	0B9h					; Opcode byte for MOV CX, <immed>
+		db		0B9h				; Opcode byte for MOV CX, <immed>
 	%elifidni	%1, dx
-		db	0BAh					; Opcode byte for MOV DX, <immed>
+		db		0BAh				; Opcode byte for MOV DX, <immed>
 	%elifidni	%1, bx
-		db	0BBh					; Opcode byte for MOV BX, <immed>
+		db		0BBh				; Opcode byte for MOV BX, <immed>
 	%elifidni	%1, sp
-		db	0BCh					; Opcode byte for MOV SP, <immed>
+		db		0BCh				; Opcode byte for MOV SP, <immed>
 	%elifidni	%1, bp
-		db	0BDh					; Opcode byte for MOV BP, <immed>
+		db		0BDh				; Opcode byte for MOV BP, <immed>
 	%elifidni	%1, si
-		db	0BEh					; Opcode byte for MOV SI, <immed>
+		db		0BEh				; Opcode byte for MOV SI, <immed>
 	%elifidni	%1, di
-		db	0BFh					; Opcode byte for MOV DI, <immed>
+		db		0BFh				; Opcode byte for MOV DI, <immed>
 	%else
 		%error "Invalid parameter passed to SKIP2B"
 	%endif

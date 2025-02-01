@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2023 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -132,7 +132,7 @@ istruc MENUITEM
 	at	MENUITEM.bFlags,			db	FLG_MENUITEM_MODIFY_MENU | FLG_MENUITEM_BYTEVALUE
 	at	MENUITEM.bType,				db	TYPE_MENUITEM_HEX
 	at	MENUITEM.itemValue + ITEM_VALUE.wRomvarsValueOffset,		dw	NULL
-	at	MENUITEM.itemValue + ITEM_VALUE.szDialogTitle,				dw	g_szDlgIdeCmdPort
+	at	MENUITEM.itemValue + ITEM_VALUE.szDialogTitle,				dw	g_szDlgIdeSerialPort
 	at	MENUITEM.itemValue + ITEM_VALUE.wMinValue,					dw	8h
 	at	MENUITEM.itemValue + ITEM_VALUE.wMaxValue,					dw	3F8h
 	at	MENUITEM.itemValue + ITEM_VALUE.fnValueReader,				dw	IdeControllerMenu_SerialReadPort
@@ -577,7 +577,7 @@ IdeControllerMenu_WriteDevice:
 	mov		bx, .rgbDefaultIrqForStdIde			; Enable interrupt for primary and secondary IDE
 	push	ax
 	xlat
-	mov		[es:di+IDEVARS.bIRQ-IDEVARS.wBasePort], al
+	mov		[es:di+IDEVARS.bIRQ], al
 	pop		ax
 
 .DoNotEnableIrq:
@@ -638,7 +638,7 @@ IdeControllerMenu_WriteDevice:
 
 	; XT-CF does not support IRQ so it must be disabled (IRQ setting is not visible for XT-CF)
 	; XTIDE does not use IRQs by default
-	mov		BYTE [es:di+IDEVARS.bIRQ-IDEVARS.wBasePort], 0
+	mov		BYTE [es:di+IDEVARS.bIRQ], 0
 
 .WriteNonSerial:
 	stosw										; Store defaults in IDEVARS.wBasePort and IDEVARS.wBasePortCtrl
@@ -657,20 +657,12 @@ IdeControllerMenu_WriteDevice:
 	jmp		SHORT .WriteNonSerial
 
 .ChangingToSerial:
-;
-; For serial drives, we pack the port number and baud rate into a single byte, and thus
-; we need to take care to properly read/write just the bits we need.  In addition, since
-; we use the Port/PortCtrl bytes in a special way for serial drives, we need to properly
-; default the values stored in both these words when switching in and out of the Serial
-; device choice.
-;
-	mov		al, SERIAL_DEFAULT_COM
-	mov		BYTE [es:di+IDEVARS.bSerialBaud-IDEVARS.wBasePort], SERIAL_DEFAULT_BAUD
-	mov		[es:di+IDEVARS.bIRQ-IDEVARS.wBasePort], ah	; Clear .bIRQ to keep the boot menu from printing it
-
+	mov		al, ah								; Clear AL to point to the default COM port in the PackedCOMPortAddresses table
+	mov		BYTE [es:di+IDEVARS.bSerialBaud], SERIAL_DEFAULT_BAUD
+	mov		[es:di+IDEVARS.bIRQ], ah			; Clear .bIRQ to keep the boot menu from printing it
 	sub		di, IDEVARS.wBasePort - IDEVARS.bSerialCOMPortChar
+	mov		BYTE [es:di], SERIAL_DEFAULT_COM
 	call	IdeControllerMenu_SerialWriteCOM
-	stosb
 
 .Done:
 	pop		ax
@@ -684,39 +676,20 @@ IdeControllerMenu_WriteDevice:
 ; Updates the port address based on COM port selection
 ;
 ;	Parameters:
-;		AL:		COM port
+;		AX:		COM port menu choice index
 ;		ES:DI:	Ptr to IDEVARS.bSerialCOMPortChar
 ;		DS:SI:	MENUITEM pointer
 ;	Returns:
-;		Nothing
+;		AX:		COM port menu choice index
 ;	Corrupts registers:
 ;		BX
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 IdeControllerMenu_SerialWriteCOM:
-	push	ax
-	push	si
-
-	mov		bx, PackedCOMPortAddresses - 1
-	mov		si, g_rgbChoiceToValueLookupForCOM - 2
-
-.Loop:
-	inc		bx
-	inc		si
-	inc		si
-
-	mov		ah, [bx]
-	cmp		ah, SERIAL_DEFAULT_CUSTOM_PORT >> 2
-	je		SHORT .NotFound
-
-	cmp		al, [si]
-	jne		SHORT .Loop
-
-.NotFound:
-	mov		[es:di+IDEVARS.bSerialPort-IDEVARS.bSerialCOMPortChar], ah
-
-	pop		si
-	pop		ax
+	xchg	bx, ax
+	mov		al, [bx+PackedCOMPortAddresses]
+	mov		[es:di+IDEVARS.bSerialPort-IDEVARS.bSerialCOMPortChar], al
+	xchg	bx, ax
 	ret
 
 

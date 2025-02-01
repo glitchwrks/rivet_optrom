@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -249,6 +249,6 @@ Int19h_JumpToBootSectorInESBXOrRomBootWithoutStackChange:
 	push	bx			; offset address for MBR
 	retf				; NOTE:	DL is set to the drive number
 
-; Boot by calling INT 18h (ROM Basic of ROM DOS)
+; Boot by calling INT 18h (ROM Basic or ROM DOS)
 .RomBoot:
 	int		BIOS_BOOT_FAILURE_INTERRUPT_18h	; Never returns

@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2024 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 SECTION .data
 
 g_szProgramName:	db	"BIOS Drive Information Tool v1.0.3",CR,LF
-					db	"(C) 2012-2024 by XTIDE Universal BIOS Team",CR,LF
+					db	"(C) 2012-2025 by XTIDE Universal BIOS Team",CR,LF
 					db	"Released under GNU GPL v2",CR,LF
 					db	"http://xtideuniversalbios.org/",CR,LF,NULL
 
