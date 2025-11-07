@@ -4,7 +4,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -294,7 +294,7 @@ SetSpeedForDriveInCX:
 	or		al, 1
 	out		dx, al
 
-	mov		cx, 100
+	mov		cl, 100
 	DELAY_WITH_LOOP_INSTRUCTION_NA
 	pop		cx
 	; Test code end

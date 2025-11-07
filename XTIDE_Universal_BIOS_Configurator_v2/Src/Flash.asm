@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2024 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@ SECTION .text
 ;	Parameters:
 ;		DS:SI:	Ptr to FLASHVARS
 ;	Returns:
-;		FLASHVARS.flashResult
+;		FLASHVARS.bFlashResult
 ;	Corrupts registers:
 ;		All, including segments
 ;--------------------------------------------------------------------
@@ -49,10 +49,10 @@ ALIGN JUMP_ALIGN
 
 	loop	.FlashNextPage
 %ifndef CHECK_FOR_UNUSED_ENTRYPOINTS
-%if FLASH_RESULT.success = 0	; Just in case this should ever change
-	mov		[bp+FLASHVARS.flashResult], cl
+%if FLASH_RESULT.Success = 0	; Just in case this should ever change
+	mov		[bp+FLASHVARS.bFlashResult], cl
 %else
-	mov		BYTE [bp+FLASHVARS.flashResult], FLASH_RESULT.success
+	mov		BYTE [bp+FLASHVARS.bFlashResult], FLASH_RESULT.Success
 %endif
 %endif
 	ret
@@ -62,7 +62,7 @@ ALIGN JUMP_ALIGN
 	SKIP2B	f
 .DataVerifyError:
 	mov		al, FLASH_RESULT.DataVerifyError
-	mov		[bp+FLASHVARS.flashResult], al
+	mov		[bp+FLASHVARS.bFlashResult], al
 	ret
 
 
@@ -106,7 +106,7 @@ Flash_SinglePageWithFlashvarsInSSBP:
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 .GetSdpCommandFunctionToAXwithFlashvarsInSSBP:
-	eMOVZX	bx, [bp+FLASHVARS.bEepromSdpCommand]
+	eMOVZX	bx, BYTE [bp+FLASHVARS.bEepromSdpCommand]
 	mov		si, [cs:bx+.rgpSdpCommandToEepromTypeLookupTable]
 	mov		bl, [bp+FLASHVARS.bEepromType]
 	mov		ax, [cs:bx+si]

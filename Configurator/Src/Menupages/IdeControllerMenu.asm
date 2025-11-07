@@ -128,7 +128,7 @@ SECTION .text
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 IdeControllerMenu_SetIdevarsOffset:
-	eMOVZX	cx, [g_MenuPageIdeVars+MENUPAGE.bItemCnt]
+	eMOVZX	cx, BYTE [g_MenuPageIdeVars+MENUPAGE.bItemCnt]
 	dec		cx
 	mov		bx, g_MenuPageItemIdeMaster+MENUPAGEITEM.pValue
 ALIGN JUMP_ALIGN

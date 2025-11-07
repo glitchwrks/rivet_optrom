@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -202,7 +202,7 @@ Interrupts_InstallHandlerToVectorInALFromCSSI:
 ;		AX, BX, DX
 ;--------------------------------------------------------------------
 Interrupts_UnmaskInterruptControllerForDriveInDSDI:
-	eMOVZX	bx, [di+DPT.bIdevarsOffset]		; Clears CF on pre-386 CPUs
+	eMOVZX	bx, BYTE [di+DPT.bIdevarsOffset]	; Clears CF on pre-386 CPUs
 %ifndef USE_386
 %ifdef USE_UNDOC_INTEL
 	salc

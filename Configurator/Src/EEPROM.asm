@@ -20,7 +20,7 @@ EEPROM_LoadBiosFromROM:
 	push	si
 	call	EEPROM_FindXtideUniversalBiosROM
 	xor		si, si									; Load from beginning of ROM
-	eMOVZX	cx, [es:ROMVARS.bRomSize]
+	eMOVZX	cx, BYTE [es:ROMVARS.bRomSize]
 	eSHL_IM	cx, 9									; *= 512 for byte count
 	call	EEPROM_LoadBytesFromROM
 	pop		si

@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2023 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -203,7 +203,7 @@ CreateStringFromCurrentDirectoryContentsToESDI:
 	CALL_DISPLAY_LIBRARY PrepareOffScreenBufferInESBXwithLengthInCX	; ES:DI now points to buffer
 
 	lds		si, [bp+DIALOG.fpDialogIO]
-	eMOVZX	cx, [si+FILE_DIALOG_IO.bFileAttributes]
+	eMOVZX	cx, BYTE [si+FILE_DIALOG_IO.bFileAttributes]
 	lds		si, [si+FILE_DIALOG_IO.fpFileFilterString]
 	call	Directory_UpdateDTAForFirstMatchForDSSIwithAttributesInCX
 

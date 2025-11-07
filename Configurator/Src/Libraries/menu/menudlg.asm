@@ -1,8 +1,4 @@
-; File name		:	menudlg.asm
 ; Project name	:	Menu library
-; Created date	:	17.11.2009
-; Last update	:	4.12.2009
-; Author		:	Tomi Tilli
 ; Description	:	ASM library to menu system.
 ;					Contains functions for displaying input dialogs.
 
@@ -14,7 +10,7 @@ struc DLGVARS
 	.msgVars	resb	MSGVARS_size
 
 	; Dialog parameters for different dialogs
-	.wCXPrm:	
+	.wCXPrm:
 	.wPrmBase:				; Numeric base for DWORD dialog (10=dec, 16=hex...)
 	.wBuffLen	resb	2	; Buffer length for string dialog (with STOP included)
 	.dwBuffPtr	resb	4	; Far pointer to buffer to receive string
@@ -123,7 +119,7 @@ MenuDlg_DWEvent:
 	; Get user input instead of drawing info strings
 	call	MenuCrsr_Show				; Show cursor during input
 	mov		cx, [bp+DLGVARS.wPrmBase]	; Load numeric base to CX
-	eMOVZX	dx, [bp+MENUVARS.bWidth]	; Load dialog width
+	eMOVZX	dx, BYTE [bp+MENUVARS.bWidth]	; Load dialog width
 	sub		dx, 4						; Subtract borders for max char count
 	call	Keys_PrintGetUint			; Get DWORD
 	mov		[bp+DLGVARS.dwRetDW], ax	; Store return loword

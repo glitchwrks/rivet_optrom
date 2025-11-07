@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -112,10 +112,13 @@ IdeDPT_Finalize:	; Unused entrypoint OK
 ;		AX, BX, CX, DX
 ;--------------------------------------------------------------------
 .DetectAdvancedIdeController:
+%ifdef MODULE_8BIT_IDE OR MODULE_SERIAL
 	; Detection is only relevant on standard devices. XT-CF seems to give false positive for
-	; PDC20x30 detection so better to skip detection for 8-bit devices
+	; PDC20x30 detection so better to skip detection for 8-bit devices. (This check is only
+	; needed in builds that includes modules providing device types above DEVICE_32BIT_ATA.)
 	cmp		BYTE [di+DPT_ATA.bDevice], DEVICE_32BIT_ATA
 	ja		SHORT .NoAdvancedControllerDetected
+%endif
 
 	mov		bx, [di+DPT.wBasePort]
 	call	AdvAtaInit_DetectControllerForIdeBaseInBX

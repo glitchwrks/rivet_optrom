@@ -156,7 +156,7 @@ MenuMsg_GetTokenForLine:
 	push	si
 
 	; Prepare to scan tokens
-	eMOVZX	si, [bp+MENUVARS.bWidth]
+	eMOVZX	si, BYTE [bp+MENUVARS.bWidth]
 	sub		si, SIZE_MSG_HBRDR	; Max number of chars per line
 	mov		dx, si				; Initialize chars left on line
 	mov		bp, cx				; Copy line index to BP
@@ -211,7 +211,7 @@ MenuMsg_WriteLine:
 	push	di
 	call	MenuMsg_GetTokenForLine			; Get ptr to first token, length to AX
 	jnc		.EndOfString					; Return if no tokens
-	eMOVZX	dx, [bp+MENUVARS.bWidth]		; Menu width
+	eMOVZX	dx, BYTE [bp+MENUVARS.bWidth]	; Menu width
 	sub		dl, SIZE_MSG_HBRDR				; To line length
 	mov		bl, ' '							; Space character
 ALIGN JUMP_ALIGN

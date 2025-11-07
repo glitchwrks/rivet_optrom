@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2024 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -80,7 +80,7 @@
 
 	%ifdef IO_SEQUENCE
 		%ifndef previous_parameter
-			eMOVZX	bx, [di+DPT.bIdevarsOffset]
+			eMOVZX	bx, BYTE [di+DPT.bIdevarsOffset]
 			%ifnidni %1, dx
 				mov		dx, %1
 			%endif
@@ -91,7 +91,7 @@
 			dec		dx
 		%elif previous_parameter = %1
 		%else
-			eMOVZX	bx, [di+DPT.bIdevarsOffset]
+			eMOVZX	bx, BYTE [di+DPT.bIdevarsOffset]
 			%ifnidni %1, dx
 				mov		dx, %1
 			%endif
@@ -101,7 +101,7 @@
 
 	%else ; ~IO_SEQUENCE
 		%undef previous_parameter
-		eMOVZX	bx, [di+DPT.bIdevarsOffset]
+		eMOVZX	bx, BYTE [di+DPT.bIdevarsOffset]
 		%ifnidni %1, dx
 			mov		dx, %1
 		%endif

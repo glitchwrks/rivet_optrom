@@ -131,7 +131,7 @@ ALIGN JUMP_ALIGN
 FlashMenu_ActivatePageSize:
 	call	MenuPageItem_GetByteFromUserWithoutMarkingUnsaved
 	jnc		SHORT .Cancel
-	eMOVZX	bx, [g_cfgVars+CFGVARS.bPageSize]
+	eMOVZX	bx, BYTE [g_cfgVars+CFGVARS.bPageSize]
 	eBSR	ax, bx					; AX = Index of highest order bit
 	mov		cx, 1
 	xchg	ax, cx
@@ -184,7 +184,7 @@ FlashMenu_InitializeFlashVars:
 	; Total number of pages to write
 	xor		dx, dx
 	mov		ax, [g_cfgVars+CFGVARS.wEepromSize]		; DX:AX = Bytes to write
-	eMOVZX	cx, [g_cfgVars+CFGVARS.bPageSize]
+	eMOVZX	cx, BYTE [g_cfgVars+CFGVARS.bPageSize]
 	div		cx										; AX = Total number of pages
 	mov		[g_cfgVars+CFGVARS.flashVars+FLASHVARS.wTotalPages], ax
 	mov		[g_cfgVars+CFGVARS.flashVars+FLASHVARS.wPagesLeft], ax
@@ -277,7 +277,7 @@ FlashMenu_UpdateProgressBarTitle:
 	push	si
 	mov		ax, [si+FLASHVARS.wTotalPages]
 	sub		ax, [si+FLASHVARS.wPagesLeft]			; AX=Pages written
-	eMOVZX	dx, [g_cfgVars+CFGVARS.bPageSize]
+	eMOVZX	dx, BYTE [g_cfgVars+CFGVARS.bPageSize]
 	mul		dx										; AX=Bytes written
 
 	push	WORD [g_cfgVars+CFGVARS.wEepromSize]	; EEPROM size
@@ -310,8 +310,8 @@ FlashMenu_FlashAllPagesBeforeUpdate:
 	mov		bp, si
 	mov		dx, [si+FLASHVARS.wPagesBeforeDraw]
 	call	FlashMenu_GetPointersToPageToFlash
-	eMOVZX	ax, [g_cfgVars+CFGVARS.bSdpCommand]
-	eMOVZX	cx, [g_cfgVars+CFGVARS.bPageSize]
+	eMOVZX	ax, BYTE [g_cfgVars+CFGVARS.bSdpCommand]
+	eMOVZX	cx, BYTE [g_cfgVars+CFGVARS.bPageSize]
 ALIGN JUMP_ALIGN
 .PageLoop:
 	call	Flash_WritePage

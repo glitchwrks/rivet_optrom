@@ -217,7 +217,7 @@ ALIGN JUMP_ALIGN
 	cmp		ax, [bp+MENUVARS.wItemCnt]		; Already at bottom?
 	je		.KeyHome						;  If so, go to beginning
 	mov		[bp+MENUVARS.wItemSel], ax		; Store new menuitem index
-	eMOVZX	bx, [bp+MENUVARS.bVisCnt]		; Load number of visible items
+	eMOVZX	bx, BYTE [bp+MENUVARS.bVisCnt]	; Load number of visible items
 	add		bx, [bp+MENUVARS.wItemTop]		; BX to one past last visible index
 	cmp		ax, bx							; Need to scroll?
 	jae		.ScrollDown
@@ -230,7 +230,7 @@ ALIGN JUMP_ALIGN
 %ifdef USE_MENU_DIALOGS
 ALIGN JUMP_ALIGN
 .TextScrollDown:
-	eMOVZX	ax, [bp+MENUVARS.bVisCnt]		; Load visible items
+	eMOVZX	ax, BYTE [bp+MENUVARS.bVisCnt]	; Load visible items
 	add		ax, [bp+MENUVARS.wItemTop]		; Add topmost menuitem index
 	cmp		ax, [bp+MENUVARS.wItemCnt]		; Already at the bottom?
 	jae		.Return							;  If so, return
@@ -279,7 +279,7 @@ ALIGN JUMP_ALIGN
 	div		BYTE [bp+MENUVARS.bVisCnt]		; AL=Current page index
 	inc		ax								; Increment page
 	mul		BYTE [bp+MENUVARS.bVisCnt]		; AX=First menuitem on page
-	eMOVZX	bx, [bp+MENUVARS.bVisCnt]		; Load number of visible items
+	eMOVZX	bx, BYTE [bp+MENUVARS.bVisCnt]	; Load number of visible items
 	add		bx, ax							; BX now one past last visible
 	cmp		bx, [bp+MENUVARS.wItemCnt]		; Went over last?
 	jae		.KeyEnd							;  If so, select last menuitem

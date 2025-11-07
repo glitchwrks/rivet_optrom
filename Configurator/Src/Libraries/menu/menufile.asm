@@ -307,7 +307,7 @@ ALIGN JUMP_ALIGN
 	push	di
 	mov		di, [bp+MSGVARS.wStrOff]		; Load string offset
 	mov		es, [bp+MSGVARS.wStrSeg]		; Load string segment
-	eMOVZX	cx, [bp+MENUVARS.bInfoH]		; Load info line count to CX
+	eMOVZX	cx, BYTE [bp+MENUVARS.bInfoH]	; Load info line count to CX
 	call	MenuDraw_MultilineStr			; Draw multiline str
 	pop		di
 	pop		es

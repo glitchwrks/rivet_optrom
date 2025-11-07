@@ -20,7 +20,7 @@ ALIGN JUMP_ALIGN
 MenuPageItem_PrintInfo:
 	push	cs
 	pop		es
-	eMOVZX	cx, [bp+MENUVARS.bInfoH]		; Info line count to CX
+	eMOVZX	cx, BYTE [bp+MENUVARS.bInfoH]	; Info line count to CX
 	call	MenuPageItem_PrintCommonInfoLines
 	mov		di, [di+MENUPAGEITEM.szInfo]	; ES:DI now points to info string
 	jmp		MenuDraw_MultilineStr

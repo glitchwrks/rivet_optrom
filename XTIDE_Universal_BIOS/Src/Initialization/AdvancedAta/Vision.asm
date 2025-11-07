@@ -4,7 +4,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -213,7 +213,7 @@ Vision_InitializeWithIDinAH:
 	db		(PIO_2_MIN_ADDRESS_VALID_NS + PIO_2_MAX_ADDR_VALID_TO_IOCS16_RELEASED + PIO_2_DIORW_TO_ADDR_VALID_HOLD)
 	db		102		; QDI6580 DOS driver v3.7 uses fixed values for PIO 3...
 	db		61		; ...and PIO 4. No idea where these values come from.
-	db		(PIO_5_MIN_CYCLE_TIME_NS / 2) ; PIO 5 and 6 were not available when QD6850 was released. Use values...
+	db		(PIO_5_MIN_CYCLE_TIME_NS / 2) ; PIO 5 and 6 were not available when QD6580 was released. Use values...
 	db		(PIO_6_MIN_CYCLE_TIME_NS / 2) ; ...that resembles those used for PIO 4
 
 

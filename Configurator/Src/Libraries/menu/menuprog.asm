@@ -105,7 +105,7 @@ MenuProg_Show:
 ALIGN JUMP_ALIGN
 MenuProg_DrawBar:
 	; Calculate number of chars to draw
-	eMOVZX	cx, [bp+MENUVARS.bWidth]		; Dialog width to CX
+	eMOVZX	cx, BYTE [bp+MENUVARS.bWidth]	; Dialog width to CX
 	sub		cl, 4							; Sub borders, CX=bar width
 	mul		cl								; AX=bar with * percentage
 	mov		bx, 100							; Prepare to div by 100

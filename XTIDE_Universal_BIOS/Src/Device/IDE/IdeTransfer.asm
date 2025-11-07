@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2024 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -142,7 +142,7 @@ CheckErrorsAfterTransferringLastBlock:
 	; Return number of successfully read sectors
 ReturnWithTransferErrorInAH:
 %ifdef USE_386
-	movzx	cx, [bp+PIOVARS.bSectorsDone]
+	movzx	cx, BYTE [bp+PIOVARS.bSectorsDone]
 %else
 	mov		cl, [bp+PIOVARS.bSectorsDone]
 	mov		ch, 0								; Preserve CF
@@ -245,7 +245,7 @@ InitializePiovarsInSSBPwithSectorCountInAH:
 %endif
 	mov		ax, [di+DPT.wBasePort]
 	mov		[bp+PIOVARS.wDataPort], ax
-	eMOVZX	ax, [di+DPT_ATA.bBlockSize]
+	eMOVZX	ax, BYTE [di+DPT_ATA.bBlockSize]
 	mov		[bp+PIOVARS.wSectorsInBlock], ax
 	mov		[bp+PIOVARS.bSectorsDone], ah		; Zero
 

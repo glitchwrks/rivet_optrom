@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -182,7 +182,7 @@ ALIGN JUMP_ALIGN
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 Buffers_GetSelectedEepromSizeInWordsToAX:
-	eMOVZX	bx, [g_cfgVars+CFGVARS.bEepromType]
+	eMOVZX	bx, BYTE [g_cfgVars+CFGVARS.bEepromType]
 	mov		ax, [bx+g_rgwEepromTypeToSizeInWords]
 
 	cmp		bl, EEPROM_TYPE.SST_39SF

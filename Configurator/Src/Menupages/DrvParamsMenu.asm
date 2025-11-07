@@ -104,7 +104,7 @@ SECTION .text
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 DrvParamsMenu_SetDrvParamsOffset:
-	eMOVZX	cx, [g_MenuPageDrvParams+MENUPAGE.bItemCnt]
+	eMOVZX	cx, BYTE [g_MenuPageDrvParams+MENUPAGE.bItemCnt]
 	dec		cx
 	mov		bx, g_MenuPageItemDrvBlockMode+MENUPAGEITEM.pValue
 ALIGN JUMP_ALIGN

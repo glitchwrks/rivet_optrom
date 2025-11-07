@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -73,9 +73,9 @@ SECTION .text
 ;		CF:		0 if successful, 1 if error
 ;--------------------------------------------------------------------
 AH48h_HandlerForGetExtendedDriveParameters:
-	mov		si, di
 	push	ds
 	pop		es		; ES = RAMVARS segment
+	mov		si, di
 	xor		bx, bx
 	dec		bx		; Set to FFFFh to assume we do not return DPTE
 
@@ -146,7 +146,21 @@ AH48h_HandlerForGetExtendedDriveParameters:
 	; since the same buffer is used for all drives so it contains parameters
 	; from previously scanned drive.
 .DoNotSetChsFlag:
-	eMOVZX	dx, [es:si+DPT.bPchsHeads]
+%ifdef USE_386
+	push	eax			; Save the high WORD of EAX
+
+	movzx	eax, BYTE [es:si+DPT.bPchsHeads]
+	mov		[di+EDRIVE_INFO.dwHeads], eax
+
+	mov		al, [es:si+DPT.bPchsSectorsPerTrack]
+	mov		[di+EDRIVE_INFO.dwSectorsPerTrack], eax
+
+	mov		ax, [es:si+DPT.wPchsCylinders]
+	mov		[di+EDRIVE_INFO.dwCylinders], eax
+
+	pop		eax			; Restore the high WORD of EAX
+%else
+	eMOVZX	dx, BYTE [es:si+DPT.bPchsHeads]
 	mov		[di+EDRIVE_INFO.dwHeads], dx
 	mov		[di+EDRIVE_INFO.dwHeads+2], cx
 
@@ -157,6 +171,6 @@ AH48h_HandlerForGetExtendedDriveParameters:
 	mov		dx, [es:si+DPT.wPchsCylinders]
 	mov		[di+EDRIVE_INFO.dwCylinders], dx
 	mov		[di+EDRIVE_INFO.dwCylinders+2], cx
-
+%endif
 	xchg	ax, cx		; Success
 	jmp		Int13h_ReturnFromHandlerAfterStoringErrorCodeFromAH

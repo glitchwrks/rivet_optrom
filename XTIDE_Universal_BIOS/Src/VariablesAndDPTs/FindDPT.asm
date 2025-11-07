@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -302,7 +302,7 @@ FindDPT_IterateAllDPTs:
 	push	cx
 
 	mov		di, RAMVARS_size			; Point DS:DI to first DPT
-	eMOVZX	cx, [RAMVARS.bDrvCnt]
+	eMOVZX	cx, BYTE [RAMVARS.bDrvCnt]
 	jcxz	.NotFound					; Return if no drives
 
 ALIGN JUMP_ALIGN

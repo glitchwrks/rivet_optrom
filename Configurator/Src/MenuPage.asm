@@ -108,7 +108,7 @@ ALIGN JUMP_ALIGN
 MenuPage_IterateMenuPageItems:
 	push	cx
 	push	bx
-	eMOVZX	cx, [si+MENUPAGE.bItemCnt]
+	eMOVZX	cx, BYTE [si+MENUPAGE.bItemCnt]
 	lea		bx, [si+MENUPAGE.rgMenuPageItem]
 ALIGN JUMP_ALIGN
 .IterationLoop:

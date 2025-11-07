@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -154,7 +154,7 @@ ConvertAssistedLBAModeLCHStoLBARegisterValues:
 	mov		ax, LBA_ASSIST_SPT		; Load Sectors per Track
 	xchg	cx, ax					; Cylinder number to AX, Sectors per Track to CX
 %ifdef USE_386
-	movzx	dx, [di+DPT.bLchsHeads]
+	movzx	dx, BYTE [di+DPT.bLchsHeads]
 %else
 	cwd
 	mov		dl, [di+DPT.bLchsHeads]

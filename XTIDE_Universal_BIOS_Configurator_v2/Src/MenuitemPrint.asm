@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2023 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ MenuitemPrint_PrintQuickInfoFromDSSI:
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 MenuitemPrint_NameWithPossibleValueFromDSSI:
-	eMOVZX	bx, [si+MENUITEM.bType]
+	eMOVZX	bx, BYTE [si+MENUITEM.bType]
 	cmp		bl, TYPE_MENUITEM_ACTION
 	ja		SHORT .PrintNameAndValueFromDSSI
 	; Fall to .PrintNameWithoutValueFromDSSI

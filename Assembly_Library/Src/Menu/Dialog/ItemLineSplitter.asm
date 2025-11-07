@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2023 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ ItemLineSplitter_GetLinesToAXforStringInDSSI:
 	call	MenuLocation_GetMaxTextLineLengthToAX
 	eENTER_STRUCT	ITEM_LINE_SPLITTER_size
 	mov		[bp+ITEM_LINE_SPLITTER.wMaxTextLineLength], ax
-	mov		WORD [bp+ITEM_LINE_SPLITTER.wLineToFind], -1
+	mov		WORD [bp+ITEM_LINE_SPLITTER.wLineToFind], -1	; OR would be one byte less but possibly slower
 
 	xor		bx, bx		; Line index
 	mov		di, si		; Start of first word

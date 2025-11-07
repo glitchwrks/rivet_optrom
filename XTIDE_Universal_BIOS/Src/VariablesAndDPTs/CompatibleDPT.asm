@@ -5,7 +5,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -120,7 +120,7 @@ FillTranslatedDPTtoESDIfromDPTinDSSI:
 	mov		ah, TRANSLATED_DPT_SIGNATURE
 	call	StoswThenAddALandAHtoDL		; Bytes 2 (Logical number of heads) and 3 (Axh signature to indicate Translated DPT)
 
-	eMOVZX	ax, [si+DPT.bPchsSectorsPerTrack]
+	eMOVZX	ax, BYTE [si+DPT.bPchsSectorsPerTrack]
 	call	StoswThenAddALandAHtoDL		; Bytes 4 (Physical sectors per track) and 5 (Write Precompensation Cylinder low)
 
 	mov		al, ah						; Zero AX
@@ -181,7 +181,7 @@ StoswALandChecksumFromDL:
 ;--------------------------------------------------------------------
 FillStandardDPTtoESDIfromDPTinDSSI:
 	stosw				; Bytes 0 and 1 (Physical number of cylinders)
-	eMOVZX	ax, [si+DPT.bLchsHeads]
+	eMOVZX	ax, BYTE [si+DPT.bLchsHeads]
 	stosw				; Bytes 2 (Physical number of heads) and 3
 %ifdef USE_UNDOC_INTEL
 %ifdef USE_386
@@ -224,10 +224,12 @@ FillStandardDPTtoESDIfromDPTinDSSI:
 CompatibleDPT_CreateDeviceParameterTableExtensionToESBXfromDPTinDSSI:
 	call	GetTemporaryBufferForDPTEtoESDI	; Valid until next AH=48h call
 
-	; Set 32-bit flag for 32-bit controllers
 	mov		cx, FLG_LBA_TRANSLATION_ENABLED	; DPTE.wFlags
+%ifdef MODULE_ADVANCED_ATA
+	; Set 32-bit flag for 32-bit controllers
 	cmp		BYTE [si+DPT_ATA.bDevice], DEVICE_32BIT_ATA
 	eCMOVE	cl, FLG_LBA_TRANSLATION_ENABLED | FLG_32BIT_XFER_MODE
+%endif
 
 	xor		dl, dl							; Clear DL for checksum
 	push	bp
@@ -238,7 +240,7 @@ CompatibleDPT_CreateDeviceParameterTableExtensionToESBXfromDPTinDSSI:
 	call	bp								; Bytes 0 and 1
 
 	; DPTE.wControlBlockPort
-	eMOVZX	bx, [si+DPT.bIdevarsOffset]
+	eMOVZX	bx, BYTE [si+DPT.bIdevarsOffset]
 	mov		ax, [cs:bx+IDEVARS.wControlBlockPort]
 	call	bp								; Bytes 2 and 3
 
@@ -277,7 +279,7 @@ CompatibleDPT_CreateDeviceParameterTableExtensionToESBXfromDPTinDSSI:
 	or		cl, FLG_CHS_TRANSLATION_ENABLED
 	test	al, FLGL_DPT_ASSISTED_LBA
 	jz		SHORT .NoChsTranslationOrBitShiftTranslationSet
-	or		ch, LBA_ASSISTED_TRANSLATION << (TRANSLATION_TYPE_FIELD_POSITION - 8)
+	mov		ch, LBA_ASSISTED_TRANSLATION << (TRANSLATION_TYPE_FIELD_POSITION - 8)	; MOV shorter than OR (CH was zero)
 .NoChsTranslationOrBitShiftTranslationSet:
 	xchg	ax, cx
 	call	bp								; Bytes 10 and 11

@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2023 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -91,7 +91,7 @@ iend
 ALIGN JUMP_ALIGN
 GetWordFromUser:
 	lds		si, [bp+DIALOG.fpDialogIO]
-	eMOVZX	bx, [si+WORD_DIALOG_IO.bNumericBase]
+	eMOVZX	bx, BYTE [si+WORD_DIALOG_IO.bNumericBase]
 ALIGN JUMP_ALIGN
 .GetUserInputUntilValidOrCancelled:
 	call	Keyboard_ReadUserInputtedWordWhilePrinting

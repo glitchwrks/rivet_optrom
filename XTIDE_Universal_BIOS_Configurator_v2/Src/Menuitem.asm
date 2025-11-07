@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2023 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -148,7 +148,7 @@ ALIGN JUMP_ALIGN
 Menuitem_StoreValueFromAXtoMenuitemInDSSI:
 %if 0
 	; 3 bytes more but this will always invoke the Writer, even if it's an invalid item type (which might be useful).
-	eMOVZX	bx, [si+MENUITEM.bType]
+	eMOVZX	bx, BYTE [si+MENUITEM.bType]
 	cmp		bl, TYPE_MENUITEM_HEX
 %else
 	; This will only invoke the Writer for valid item types.

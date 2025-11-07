@@ -1,9 +1,4 @@
-; File name		:	menu.asm
 ; Project name	:	Menu library
-; Created date	:	9.11.2009
-; Last update	:	6.1.2011
-; Author		:	Tomi Tilli,
-;				:	Krister Nordvall (optimizations)
 ; Description	:	ASM library to menu system.
 ;
 ;					Menu.asm contains function to be called from
@@ -39,10 +34,10 @@ struc MENUVARS
 	.wTopDwnH:
 	.bTitleH	resb	1	; Title height in chars (borders not included, 0=disabled)
 	.bInfoH		resb	1	; Info height in chars (borders not included, 0=disabled)
-	
+
 	; Menu callback system set by user
 	.fnEvent	resb	2	; Offset to event callback function
-	
+
 	; Menu library internal variables.
 	; Do not modify from outside menu library!
 	.wTimeInit	resb	2	; System time ticks for autoselect (0=disabled)
@@ -210,7 +205,7 @@ Menu_Init:
 	mov		[bp+MENUVARS.bFlags], bl
 
 	; Calculate number of visible menuitems
-	eMOVZX	ax, [bp+MENUVARS.bHeight]	; Load menu total height
+	eMOVZX	ax, BYTE [bp+MENUVARS.bHeight]	; Load menu total height
 	times 2 dec	ax						; Decrement top and borders
 	or		ah, [bp+MENUVARS.bTitleH]	; Load title height
 	jz		.CheckInfo					;  If no title, check if info
@@ -233,7 +228,7 @@ ALIGN JUMP_ALIGN
 	test	al, al						; Default menuitem returned?
 	jz		.InitDone					;  If not, continue
 	mov		[bp+MENUVARS.wItemSel], cx	; Store default
-	eMOVZX	ax, [bp+MENUVARS.bVisCnt]	; Load one past last to be displayed
+	eMOVZX	ax, BYTE [bp+MENUVARS.bVisCnt]	; Load one past last to be displayed
 	cmp		cx, ax						; Visible selection?
 	jb		.InitDone					;  If so, continue
 	mov		[bp+MENUVARS.wItemTop], cx	; Set selected to topmost

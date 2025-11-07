@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2021 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 SECTION .text
 
 ;--------------------------------------------------------------------
-; FlashSst_WithFlashvarsInDSSI
+; FlashSst_WithFlashvarsInDSBX
 ;	Parameters:
 ;		DS:BX:	Ptr to FLASHVARS
 ;	Returns:
@@ -39,13 +39,13 @@ FlashSst_WithFlashvarsInDSBX:
 	push	bp
 	mov		bp, bx					; Flashvars now in SS:BP (Assumes SS=DS)
 
-	mov		BYTE [bp+FLASHVARS.flashResult], FLASH_RESULT.DeviceNotDetected
+	mov		BYTE [bp+FLASHVARS.bFlashResult], FLASH_RESULT.DeviceNotDetected
 	call	DetectSstDevice
 	jc		SHORT .ExitOnError
 
 	call	CalibrateSstTimeout
 
-	mov		BYTE [bp+FLASHVARS.flashResult], FLASH_RESULT.PollingTimeoutError
+	mov		BYTE [bp+FLASHVARS.bFlashResult], FLASH_RESULT.PollingTimeoutError
 	mov		cx, [bp+FLASHVARS.wPagesToFlash]
 	mov		dx, [bp+FLASHVARS.wEepromPageSize]
 	les		di, [bp+FLASHVARS.fpNextSourcePage]
@@ -81,7 +81,7 @@ ALIGN JUMP_ALIGN
 	; The write process has already confirmed the results one byte at a time.
 	; Here we do an additional verify check just in case there was some
 	; kind of oddity with pages / addresses.
-	mov		BYTE [bp+FLASHVARS.flashResult], FLASH_RESULT.DataVerifyError
+	mov		BYTE [bp+FLASHVARS.bFlashResult], FLASH_RESULT.DataVerifyError
 %ifndef USE_186
 	mov		ax, [bp+FLASHVARS.wPagesToFlash]
 	mov		cl, SST_PAGE_SIZE_SHIFT - 1		; -1 because we compare WORDs (verifying 64 KB won't work otherwise)
@@ -97,10 +97,10 @@ ALIGN JUMP_ALIGN
 	jne		SHORT .ExitOnError
 
 %ifndef CHECK_FOR_UNUSED_ENTRYPOINTS
-%if FLASH_RESULT.success = 0	; Just in case this should ever change
-	mov		[bp+FLASHVARS.flashResult], cl
+%if FLASH_RESULT.Success = 0	; Just in case this should ever change
+	mov		[bp+FLASHVARS.bFlashResult], cl
 %else
-	mov		BYTE [bp+FLASHVARS.flashResult], FLASH_RESULT.success
+	mov		BYTE [bp+FLASHVARS.bFlashResult], FLASH_RESULT.Success
 %endif
 %endif
 ALIGN JUMP_ALIGN

@@ -4,7 +4,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -173,7 +173,7 @@ AdvAtaInit_LoadMasterDPTtoDSSIifSlaveInDSDI:
 ;		Nothing
 ;--------------------------------------------------------------------
 AdvAtaInit_SelectSlowestCommonPioTimingsToBXandCXfromDSSIandDSDI:
-	eMOVZX	bx, [di+DPT_ADVANCED_ATA.bPioMode]
+	eMOVZX	bx, BYTE [di+DPT_ADVANCED_ATA.bPioMode]
 	mov		cx, [di+DPT_ADVANCED_ATA.wMinPioCycleTime]
 	test	si, si
 	jz		SHORT .PioTimingsLoadedToBXandCX

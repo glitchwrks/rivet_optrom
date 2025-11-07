@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -184,7 +184,7 @@ DisplayLBA48sectorCountUsingAtaInfoFromDSBX:
 ;		AX, DX, BP, SI, DI
 ;--------------------------------------------------------------------
 DisplayBlockModeInformationUsingAtaInfoFromDSBX:
-	eMOVZX	ax, [bx+ATA1.bBlockSel]	; ATA2+ has flag on high word
+	eMOVZX	ax, BYTE [bx+ATA1.bBlockSel]	; ATA2+ has flag on high word
 	cwd
 	mov		dl, [bx+ATA1.bBlckSize]
 	mov		si, g_szBlockMode

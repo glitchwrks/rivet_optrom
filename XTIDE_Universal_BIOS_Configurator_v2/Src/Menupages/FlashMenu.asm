@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -359,7 +359,7 @@ ALIGN JUMP_ALIGN
 	cmp		BYTE [g_cfgVars+CFGVARS.bEepromType], EEPROM_TYPE.SST_39SF
 	je		SHORT .UseSstPageSize
 
-	eMOVZX	bx, [g_cfgVars+CFGVARS.bEepromPage]
+	eMOVZX	bx, BYTE [g_cfgVars+CFGVARS.bEepromPage]
 	mov		ax, [bx+g_rgwEepromPageToSizeInBytes]
 .UseSstPageSize:
 	mov		[si+FLASHVARS.wEepromPageSize], ax
@@ -402,7 +402,7 @@ ALIGN JUMP_ALIGN
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 .DisplayFlashingResultsFromFlashvarsInDSBX:
-	eMOVZX	bx, [bx+FLASHVARS.flashResult]
+	eMOVZX	bx, BYTE [bx+FLASHVARS.bFlashResult]
 	jmp		[cs:bx+.rgfnFlashResultMessage]
 
 ALIGN WORD_ALIGN

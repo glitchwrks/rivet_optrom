@@ -38,7 +38,7 @@ PrntVram_GetPtr:
 	mov		es, ax							; Copy zero to ES (BDA segment)
 
 	; Calculate offset to VRAM
-	eMOVZX	di, [es:BDA.bVidPageIdx]		; Load page index
+	eMOVZX	di, BYTE [es:BDA.bVidPageIdx]	; Load page index
 	shl		di, 1							; Shift for word lookup
 	mov		ax, [es:di+BDA.rgwVidCurPos]	; Load cursor position
 	shl		ax, 1							; Cursor offsets to WORD offsets

@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2023 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -153,7 +153,7 @@ RamVars_UnpackFlopCntAndFirstToAL:
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 RamVars_GetIdeControllerCountToCX:
-	eMOVZX	cx, [cs:ROMVARS.bIdeCnt]
+	eMOVZX	cx, BYTE [cs:ROMVARS.bIdeCnt]
 	ret
 
 
