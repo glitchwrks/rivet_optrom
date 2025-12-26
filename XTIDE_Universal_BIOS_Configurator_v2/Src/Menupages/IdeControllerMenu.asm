@@ -644,6 +644,7 @@ IdeControllerMenu_WriteDevice:
 
 	; XT-CF does not support IRQ so it must be disabled (IRQ setting is not visible for XT-CF)
 	; XTIDE does not use IRQs by default
+.DisableIRQsAndWriteNonSerial:
 	mov		BYTE [es:di+IDEVARS.bIRQ], 0
 
 .WriteNonSerial:
@@ -655,7 +656,7 @@ IdeControllerMenu_WriteDevice:
 .ChangingToJukoD16X:
 	mov		ax, 320h
 	mov		bx, 3F0h
-	jmp		SHORT .WriteNonSerial
+	jmp		SHORT .DisableIRQsAndWriteNonSerial
 
 .ChangingToJrIdeIsa:
 	mov		ah, JRIDE_DEFAULT_SEGMENT_ADDRESS >> 8
@@ -665,7 +666,7 @@ IdeControllerMenu_WriteDevice:
 	mov		ah, ADP50L_DEFAULT_BIOS_SEGMENT_ADDRESS >> 8
 	xor		al, al
 	xor		bx, bx
-	jmp		SHORT .WriteNonSerial
+	jmp		SHORT .DisableIRQsAndWriteNonSerial
 
 .ChangingToSerial:
 	mov		al, ah								; Clear AL to point to the default COM port in the PackedCOMPortAddresses table
