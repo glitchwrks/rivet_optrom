@@ -4,7 +4,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ IdeIO_InputToALfromIdeRegisterInDL:
 	xor		dh, dh	; IDE Register index now in DX...
 	mov		al, [di+DPT_ATA.bDevice]
 	cmp		al, DEVICE_8BIT_XTIDE_REV2
-	jb		SHORT .InputToALfromRegisterInDX	; Standard IDE controllers and XTIDE rev 1
+	jb		SHORT .InputToALfromRegisterInDX	; Standard IDE controllers, Juko D16-X and XTIDE rev 1
 	mov		bx, dx	; ...and BX for A0<->A3 swap and for memory mapped I/O
 
 %ifdef MODULE_8BIT_IDE_ADVANCED
@@ -101,7 +101,7 @@ IdeIO_OutputALtoIdeControlBlockRegisterInDL:
 	xor		dh, dh	; IDE Register index now in DX
 	mov		bl, [di+DPT_ATA.bDevice]
 	cmp		bl, DEVICE_8BIT_XTIDE_REV2
-	jb		SHORT .OutputALtoControlBlockRegisterInDX	; Standard IDE controllers and XTIDE rev 1
+	jb		SHORT .OutputALtoControlBlockRegisterInDX	; Standard IDE controllers, Juko D16-X and XTIDE rev 1
 
 %ifdef MODULE_8BIT_IDE_ADVANCED
 	cmp		bl, DEVICE_8BIT_XTIDE_REV2_OLIVETTI
@@ -156,7 +156,7 @@ IdeIO_OutputALtoIdeRegisterInDL:
 	xor		dh, dh	; IDE Register index now in DX
 	mov		bl, [di+DPT_ATA.bDevice]
 	cmp		bl, DEVICE_8BIT_XTIDE_REV2
-	jb		SHORT OutputALtoRegisterInDX	; Standard IDE controllers and XTIDE rev 1
+	jb		SHORT OutputALtoRegisterInDX	; Standard IDE controllers, Juko D16-X and XTIDE rev 1
 
 %ifdef MODULE_8BIT_IDE_ADVANCED
 	cmp		bl, DEVICE_8BIT_XTIDE_REV2_OLIVETTI

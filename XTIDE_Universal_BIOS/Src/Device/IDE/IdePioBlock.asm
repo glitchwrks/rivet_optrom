@@ -4,7 +4,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -415,6 +415,51 @@ ALIGN JUMP_ALIGN
 	loop	.NextIteration
 	ret
 %endif
+
+
+;--------------------------------------------------------------------
+; IdePioBlock_WriteToJukoD16X			Juko Laboratories, Ltd. D16-X
+;	Parameters:
+;		CX:		Block size in 512-byte sectors
+;		DX:		IDE Data port address
+;		DS:SI:	Normalized ptr to buffer containing data
+;	Returns:
+;		Nothing
+;	Corrupts registers:
+;		AX, CX
+;--------------------------------------------------------------------
+ALIGN JUMP_ALIGN
+IdePioBlock_WriteToJukoD16X:
+%ifdef EXTRA_LOOP_UNROLLING_LARGE
+	UNROLL_SECTORS_IN_CX_TO_16WORDS
+%elifdef EXTRA_LOOP_UNROLLING_SMALL
+	UNROLL_SECTORS_IN_CX_TO_OWORDS
+%else
+	UNROLL_SECTORS_IN_CX_TO_QWORDS
+%endif
+ALIGN JUMP_ALIGN
+.NextIteration:
+%ifdef EXTRA_LOOP_UNROLLING_LARGE
+	%rep 16	; WORDs
+		lodsw			; Load WORD from [DS:SI]
+		xchg	ah, al
+		out		dx, ax	; Write WORD
+	%endrep
+%elifdef EXTRA_LOOP_UNROLLING_SMALL
+	%rep 8	; WORDs
+		lodsw			; Load WORD from [DS:SI]
+		xchg	ah, al
+		out		dx, ax	; Write WORD
+	%endrep
+%else
+	%rep 4	; WORDs
+		lodsw			; Load WORD from [DS:SI]
+		xchg	ah, al
+		out		dx, ax	; Write WORD
+	%endrep
+%endif
+	loop	.NextIteration
+	ret
 %endif ; MODULE_8BIT_IDE
 
 

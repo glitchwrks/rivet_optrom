@@ -190,6 +190,7 @@ g_rgwChoiceToValueLookupForDevice:
 	dw	DEVICE_16BIT_ATA
 	dw	DEVICE_32BIT_ATA
 	dw	DEVICE_8BIT_ATA
+	dw	DEVICE_8BIT_JUKO_D16X
 	dw	DEVICE_8BIT_XTIDE_REV1
 	dw	DEVICE_8BIT_XTIDE_REV2
 	dw	DEVICE_8BIT_XTIDE_REV2_OLIVETTI
@@ -204,6 +205,7 @@ g_rgszValueToStringLookupForDevice:
 	dw	g_szValueCfgDevice16b
 	dw	g_szValueCfgDevice32b
 	dw	g_szValueCfgDevice8b
+	dw	g_szValueCfgDeviceJukoD16X
 	dw	g_szValueCfgDeviceRev1
 	dw	g_szValueCfgDeviceRev2
 	dw	g_szValueCfgDeviceRev2Olivetti
@@ -420,12 +422,14 @@ ALIGN JUMP_ALIGN
 	mov		bx, g_MenuitemIdeControllerEnableInterrupt
 	cmp		al, DEVICE_8BIT_XTCF_PIO8
 	jae		SHORT .DisableMenuitemFromCSBX
-
+	cmp		al, DEVICE_8BIT_JUKO_D16X
+	je		SHORT .DisableMenuitemFromCSBX
 	call	EnableMenuitemFromCSBX
 	; Fall to .EnableOrDisableIRQchannelSelection
 
 ;--------------------------------------------------------------------
 ; .EnableOrDisableIRQchannelSelection
+; .DisableIRQchannelSelection
 ;	Parameters:
 ;		SS:BP:	Menu handle
 ;	Returns:
@@ -623,6 +627,8 @@ IdeControllerMenu_WriteDevice:
 
 	; We know MODULE_8BIT_IDE is included
 	lahf	; Save the PF
+	cmp		al, DEVICE_8BIT_JUKO_D16X
+	je		SHORT .ChangingToJukoD16X
 	cmp		al, DEVICE_8BIT_XTIDE_REV2_OLIVETTI
 	jbe		SHORT .ChangingToXTIDEorXTCF
 	sahf	; Restore the PF
@@ -645,6 +651,11 @@ IdeControllerMenu_WriteDevice:
 	xchg	bx, ax
 	stosw
 	jmp		SHORT .Done
+
+.ChangingToJukoD16X:
+	mov		ax, 320h
+	mov		bx, 3F0h
+	jmp		SHORT .WriteNonSerial
 
 .ChangingToJrIdeIsa:
 	mov		ah, JRIDE_DEFAULT_SEGMENT_ADDRESS >> 8

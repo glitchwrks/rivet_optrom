@@ -304,6 +304,7 @@ g_szHelpIdeSerialBaud:		db	"Supported baud rates are 2400, 4800, 9600, 19.2K, 28
 g_szMultichoiceCfgDevice:	db	"16-bit ISA/VLB/PCI IDE",LF
 							db	"32-bit VLB/PCI IDE",LF
 							db	"16-bit ISA IDE in 8-bit mode",LF
+							db	"Juko D16-X",LF
 							db	"XTIDE rev 1",LF
 							db	"XTIDE rev 2 or modded rev 1",LF
 							db	"XTIDE rev 2 (Olivetti M24)",LF
@@ -318,6 +319,7 @@ g_szMultichoiceCfgDevice:	db	"16-bit ISA/VLB/PCI IDE",LF
 g_szValueCfgDevice16b:						db	"16-bit",NULL
 g_szValueCfgDevice32b:						db	"32-bit",NULL
 g_szValueCfgDevice8b:						db	"8-bit",NULL
+g_szValueCfgDeviceJukoD16X:					db	"D16-X",NULL
 g_szValueCfgDeviceRev1:						db	"XTIDE r1",NULL
 g_szValueCfgDeviceRev2:
 g_szValueCfgDeviceRev2Olivetti:				db	"XTIDE r2",NULL
