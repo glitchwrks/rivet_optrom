@@ -13,7 +13,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -270,6 +270,10 @@ g_szDeviceTypeValues_8bit:				; db	"  8",NULL
                           				; db	 20h,  20h,  38h,  00h    ; uncompressed
                           				  db	 20h,  20h,  10h          ; compressed
 
+g_szDeviceTypeValues_JukoD16X:			; db	"J16",NULL
+                              			; db	 4ah,  31h,  36h,  00h    ; uncompressed
+                              			  db	 50h,  2bh,  0fh          ; compressed
+
 g_szDeviceTypeValues_XTIDEr1:			; db	"D8 ",NULL	; Dual 8-bit
                              			; db	 44h,  38h,  20h,  00h    ; uncompressed
                              			  db	 4ah,  30h,  00h          ; compressed
@@ -341,41 +345,44 @@ g_szDeviceTypeValues_Displacement equ 4
 %if g_szDeviceTypeValues_8bit <> g_szDeviceTypeValues_32bit + g_szDeviceTypeValues_Displacement
 %error "g_szDeviceTypeValues Displacement Incorrect 3"
 %endif
-%if g_szDeviceTypeValues_XTIDEr1 <> g_szDeviceTypeValues_8bit + g_szDeviceTypeValues_Displacement
+%if g_szDeviceTypeValues_JukoD16X <> g_szDeviceTypeValues_8bit + g_szDeviceTypeValues_Displacement
 %error "g_szDeviceTypeValues Displacement Incorrect 4"
 %endif
-%if g_szDeviceTypeValues_XTIDEr2 <> g_szDeviceTypeValues_XTIDEr1 + g_szDeviceTypeValues_Displacement
+%if g_szDeviceTypeValues_XTIDEr1 <> g_szDeviceTypeValues_JukoD16X + g_szDeviceTypeValues_Displacement
 %error "g_szDeviceTypeValues Displacement Incorrect 5"
 %endif
-%if g_szDeviceTypeValues_XTIDEr2_Olivetti <> g_szDeviceTypeValues_XTIDEr2 + g_szDeviceTypeValues_Displacement
+%if g_szDeviceTypeValues_XTIDEr2 <> g_szDeviceTypeValues_XTIDEr1 + g_szDeviceTypeValues_Displacement
 %error "g_szDeviceTypeValues Displacement Incorrect 6"
+%endif
+%if g_szDeviceTypeValues_XTIDEr2_Olivetti <> g_szDeviceTypeValues_XTIDEr2 + g_szDeviceTypeValues_Displacement
+%error "g_szDeviceTypeValues Displacement Incorrect 7"
 %endif
 
 %ifdef MODULE_8BIT_IDE_ADVANCED OR MODULE_SERIAL
 
 %if g_szDeviceTypeValues_XTCFpio8 <> g_szDeviceTypeValues_XTIDEr2_Olivetti + g_szDeviceTypeValues_Displacement
-%error "g_szDeviceTypeValues Displacement Incorrect 7"
-%endif
-%if g_szDeviceTypeValues_XTCFpio8BIU <> g_szDeviceTypeValues_XTCFpio8 + g_szDeviceTypeValues_Displacement
 %error "g_szDeviceTypeValues Displacement Incorrect 8"
 %endif
-%if g_szDeviceTypeValues_XTCFpio16BIU <> g_szDeviceTypeValues_XTCFpio8BIU + g_szDeviceTypeValues_Displacement
+%if g_szDeviceTypeValues_XTCFpio8BIU <> g_szDeviceTypeValues_XTCFpio8 + g_szDeviceTypeValues_Displacement
 %error "g_szDeviceTypeValues Displacement Incorrect 9"
 %endif
-%if g_szDeviceTypeValues_XTCFdma <> g_szDeviceTypeValues_XTCFpio16BIU + g_szDeviceTypeValues_Displacement
+%if g_szDeviceTypeValues_XTCFpio16BIU <> g_szDeviceTypeValues_XTCFpio8BIU + g_szDeviceTypeValues_Displacement
 %error "g_szDeviceTypeValues Displacement Incorrect 10"
 %endif
-%if g_szDeviceTypeValues_JrIde <> g_szDeviceTypeValues_XTCFdma + g_szDeviceTypeValues_Displacement
+%if g_szDeviceTypeValues_XTCFdma <> g_szDeviceTypeValues_XTCFpio16BIU + g_szDeviceTypeValues_Displacement
 %error "g_szDeviceTypeValues Displacement Incorrect 11"
 %endif
-%if g_szDeviceTypeValues_ADP50L <> g_szDeviceTypeValues_JrIde + g_szDeviceTypeValues_Displacement
+%if g_szDeviceTypeValues_JrIde <> g_szDeviceTypeValues_XTCFdma + g_szDeviceTypeValues_Displacement
 %error "g_szDeviceTypeValues Displacement Incorrect 12"
+%endif
+%if g_szDeviceTypeValues_ADP50L <> g_szDeviceTypeValues_JrIde + g_szDeviceTypeValues_Displacement
+%error "g_szDeviceTypeValues Displacement Incorrect 13"
 %endif
 
 %ifdef MODULE_SERIAL
 
 %if g_szDeviceTypeValues_Serial <> g_szDeviceTypeValues_ADP50L + g_szDeviceTypeValues_Displacement
-%error "g_szDeviceTypeValues Displacement Incorrect 13"
+%error "g_szDeviceTypeValues Displacement Incorrect 14"
 %endif
 
 %endif ; MODULE_SERIAL
@@ -607,40 +614,40 @@ StringsCompressed_TranslatesAndFormats:
 %endif
 
 ;; translated usage stats
-;; 181:1
-;; 48:2
-;; 172:2
-;; 50:2
-;; 171:2
-;; 45:2
-;; 51:3
-;; 200:1
-;; 34:3
-;; 179:8
-;; 33:1
-;; 53:2
-;; 47:2
-;; 54:2
-;; 46:3
-;; 32:34
 ;; 56:9
+;; 48:2
+;; 32:34
+;; 34:3
+;; 33:1
+;; 49:3
+;; 47:2
+;; 172:2
+;; 53:2
+;; 54:3
+;; 45:2
+;; 179:8
+;; 46:3
+;; 51:3
+;; 171:2
+;; 50:2
+;; 181:1
+;; 200:1
 ;; 175:1
-;; 49:2
 ;; 44:1
 ;; total translated: 20
 
 ;; format usage stats
+;; u:6
+;; 2-I:1
+;; 5-u:2
+;; z:2
+;; nl:12
 ;; 5-x:1
 ;; s:14
-;; z:2
-;; u:6
-;; 2-u:1
-;; nl:12
-;; 2-I:1
-;; c:13
-;; 5-u:2
 ;; x:5
 ;; A:4
+;; 2-u:1
+;; c:13
 ;; total format: 11
 
 ;; alphabet usage stats
@@ -660,7 +667,7 @@ StringsCompressed_TranslatesAndFormats:
 ;; 71,G:3
 ;; 72,H:2
 ;; 73,I:1
-;; 74,J:
+;; 74,J:1
 ;; 75,K:1
 ;; 76,L:4
 ;; 77,M:7
@@ -708,6 +715,6 @@ StringsCompressed_TranslatesAndFormats:
 ;; 119,w:1
 ;; 120,x:
 ;; 121,y:2
-;; alphabet used count: 45
+;; alphabet used count: 46
 %endif ; STRINGSCOMPRESSED_TABLES
 

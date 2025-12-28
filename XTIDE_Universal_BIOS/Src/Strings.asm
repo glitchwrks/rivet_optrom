@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -143,6 +143,7 @@ g_szDeviceTypeValues_16bit:				db	" 16",NULL
 g_szDeviceTypeValues_32bit:				db	" 32",NULL
 %ifdef MODULE_8BIT_IDE OR MODULE_8BIT_IDE_ADVANCED OR MODULE_SERIAL
 g_szDeviceTypeValues_8bit:				db	"  8",NULL
+g_szDeviceTypeValues_JukoD16X:			db	"J16",NULL
 g_szDeviceTypeValues_XTIDEr1:			db	"D8 ",NULL	; Dual 8-bit
 g_szDeviceTypeValues_XTIDEr2:			db	"X8 ",NULL	; A0<->A3 swapped 8-bit
 g_szDeviceTypeValues_XTIDEr2_Olivetti:	db	"X8O",NULL	; Same as above but in Olivetti M24 and derivatives
@@ -184,41 +185,44 @@ g_szDeviceTypeValues_Serial:			db	"SER",NULL
 	%if g_szDeviceTypeValues_8bit <> g_szDeviceTypeValues_32bit + g_szDeviceTypeValues_Displacement
 		%error "g_szDeviceTypeValues Displacement Incorrect 3"
 	%endif
-	%if g_szDeviceTypeValues_XTIDEr1 <> g_szDeviceTypeValues_8bit + g_szDeviceTypeValues_Displacement
+	%if g_szDeviceTypeValues_JukoD16X <> g_szDeviceTypeValues_8bit + g_szDeviceTypeValues_Displacement
 		%error "g_szDeviceTypeValues Displacement Incorrect 4"
 	%endif
-	%if g_szDeviceTypeValues_XTIDEr2 <> g_szDeviceTypeValues_XTIDEr1 + g_szDeviceTypeValues_Displacement
+	%if g_szDeviceTypeValues_XTIDEr1 <> g_szDeviceTypeValues_JukoD16X + g_szDeviceTypeValues_Displacement
 		%error "g_szDeviceTypeValues Displacement Incorrect 5"
 	%endif
-	%if g_szDeviceTypeValues_XTIDEr2_Olivetti <> g_szDeviceTypeValues_XTIDEr2 + g_szDeviceTypeValues_Displacement
+	%if g_szDeviceTypeValues_XTIDEr2 <> g_szDeviceTypeValues_XTIDEr1 + g_szDeviceTypeValues_Displacement
 		%error "g_szDeviceTypeValues Displacement Incorrect 6"
+	%endif
+	%if g_szDeviceTypeValues_XTIDEr2_Olivetti <> g_szDeviceTypeValues_XTIDEr2 + g_szDeviceTypeValues_Displacement
+		%error "g_szDeviceTypeValues Displacement Incorrect 7"
 	%endif
 
 	%ifdef MODULE_8BIT_IDE_ADVANCED OR MODULE_SERIAL
 
 	%if g_szDeviceTypeValues_XTCFpio8 <> g_szDeviceTypeValues_XTIDEr2_Olivetti + g_szDeviceTypeValues_Displacement
-		%error "g_szDeviceTypeValues Displacement Incorrect 7"
-	%endif
-	%if g_szDeviceTypeValues_XTCFpio8BIU <> g_szDeviceTypeValues_XTCFpio8 + g_szDeviceTypeValues_Displacement
 		%error "g_szDeviceTypeValues Displacement Incorrect 8"
 	%endif
-	%if g_szDeviceTypeValues_XTCFpio16BIU <> g_szDeviceTypeValues_XTCFpio8BIU + g_szDeviceTypeValues_Displacement
+	%if g_szDeviceTypeValues_XTCFpio8BIU <> g_szDeviceTypeValues_XTCFpio8 + g_szDeviceTypeValues_Displacement
 		%error "g_szDeviceTypeValues Displacement Incorrect 9"
 	%endif
-	%if g_szDeviceTypeValues_XTCFdma <> g_szDeviceTypeValues_XTCFpio16BIU + g_szDeviceTypeValues_Displacement
+	%if g_szDeviceTypeValues_XTCFpio16BIU <> g_szDeviceTypeValues_XTCFpio8BIU + g_szDeviceTypeValues_Displacement
 		%error "g_szDeviceTypeValues Displacement Incorrect 10"
 	%endif
-	%if g_szDeviceTypeValues_JrIde <> g_szDeviceTypeValues_XTCFdma + g_szDeviceTypeValues_Displacement
+	%if g_szDeviceTypeValues_XTCFdma <> g_szDeviceTypeValues_XTCFpio16BIU + g_szDeviceTypeValues_Displacement
 		%error "g_szDeviceTypeValues Displacement Incorrect 11"
 	%endif
-	%if g_szDeviceTypeValues_ADP50L <> g_szDeviceTypeValues_JrIde + g_szDeviceTypeValues_Displacement
+	%if g_szDeviceTypeValues_JrIde <> g_szDeviceTypeValues_XTCFdma + g_szDeviceTypeValues_Displacement
 		%error "g_szDeviceTypeValues Displacement Incorrect 12"
+	%endif
+	%if g_szDeviceTypeValues_ADP50L <> g_szDeviceTypeValues_JrIde + g_szDeviceTypeValues_Displacement
+		%error "g_szDeviceTypeValues Displacement Incorrect 13"
 	%endif
 
 	%ifdef MODULE_SERIAL
 
 	%if g_szDeviceTypeValues_Serial <> g_szDeviceTypeValues_ADP50L + g_szDeviceTypeValues_Displacement
-		%error "g_szDeviceTypeValues Displacement Incorrect 13"
+		%error "g_szDeviceTypeValues Displacement Incorrect 14"
 	%endif
 
 	%endif ; MODULE_SERIAL
