@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -28,36 +28,6 @@ endstruc
 
 ; Section containing code
 SECTION .text
-
-;--------------------------------------------------------------------
-; MenuBorders_RefreshAll
-;	Parameters
-;		SS:BP:	Ptr to MENU
-;	Returns:
-;		Nothing
-;	Corrupts registers:
-;		AX, BX, CX, DX, SI, DI
-;--------------------------------------------------------------------
-ALIGN MENU_JUMP_ALIGN
-MenuBorders_RefreshAll:
-%ifndef USE_186
-	call	MenuBorders_AdjustDisplayContextForDrawingBorders
-	call	MenuBorders_GetNumberOfMiddleCharactersToDX
-	call	RefreshTitleBorders
-	call	RefreshItemBorders
-	call	RefreshInformationBorders
-	call	DrawBottomBorderLine
-	jmp		DrawBottomShadowLine
-%else
-	push	DrawBottomShadowLine
-	push	DrawBottomBorderLine
-	push	RefreshInformationBorders
-	push	RefreshItemBorders
-	push	RefreshTitleBorders
-	push	MenuBorders_GetNumberOfMiddleCharactersToDX
-	jmp		SHORT MenuBorders_AdjustDisplayContextForDrawingBorders
-%endif
-
 
 ;--------------------------------------------------------------------
 ; MenuBorders_RedrawBottomBorderLine
@@ -95,6 +65,36 @@ MenuBorders_RefreshItemBorders:
 
 	call	MenuBorders_GetNumberOfMiddleCharactersToDX
 	jmp		SHORT RefreshItemBorders
+%endif
+
+
+;--------------------------------------------------------------------
+; MenuBorders_RefreshAll
+;	Parameters
+;		SS:BP:	Ptr to MENU
+;	Returns:
+;		Nothing
+;	Corrupts registers:
+;		AX, BX, CX, DX, SI, DI
+;--------------------------------------------------------------------
+ALIGN MENU_JUMP_ALIGN
+MenuBorders_RefreshAll:
+%ifndef USE_186
+	call	MenuBorders_AdjustDisplayContextForDrawingBorders
+	call	MenuBorders_GetNumberOfMiddleCharactersToDX
+	call	RefreshTitleBorders
+	call	RefreshItemBorders
+	call	RefreshInformationBorders
+	call	DrawBottomBorderLine
+	jmp		DrawBottomShadowLine
+%else
+	push	DrawBottomShadowLine
+	push	DrawBottomBorderLine
+	push	RefreshInformationBorders
+	push	RefreshItemBorders
+	push	RefreshTitleBorders
+	push	MenuBorders_GetNumberOfMiddleCharactersToDX
+	; Fall to MenuBorders_AdjustDisplayContextForDrawingBorders
 %endif
 
 

@@ -5,7 +5,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -72,8 +72,12 @@ GetTemporaryBufferForDPTEtoESDI:
 GetBufferForDrive80hToESDI:
 	push	ds
 	pop		es
+%ifdef USE_186
+	imul	di, [cs:ROMVARS.bStealSize], 1024
+%else
 	mov		di, [cs:ROMVARS.bStealSize]	; No harm to read WORD
 	eSHL_IM	di, 10						; DI = RAMVARS size in bytes
+%endif
 %ifdef MODULE_EBIOS
 	sub		di, BYTE (TRANSLATED_DPT_size * 2) + DPTE_size
 %else

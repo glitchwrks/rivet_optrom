@@ -4,7 +4,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -36,7 +36,8 @@
 SECTION .text
 
 ; Program first instruction.
-ORG	100h						; Code starts at offset 100h (DOS .COM)
+%define ORIGIN 100h
+ORG	ORIGIN						; Code starts at offset 100h (DOS .COM)
 Start:
 	jmp		StartBiosDriveInformationTool
 

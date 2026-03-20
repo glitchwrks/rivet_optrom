@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -39,8 +39,12 @@ CharOutLineSplitter_PrepareForPrintingTextLines:
 
 	; Get last text line column offset to AX
 	call	MenuLocation_GetMaxTextLineLengthToAX
+%ifdef USE_386
+	lea		ax, [edx+eax*2]
+%else
 	eSHL_IM	ax, 1			; Characters to BYTEs
 	add		ax, dx
+%endif
 
 	xchg	ax, dx			; AL = First text line column offset
 	mov		ah, dl			; AH = Last text line column offset

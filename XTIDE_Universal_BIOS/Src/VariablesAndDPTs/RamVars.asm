@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -39,14 +39,15 @@ RamVars_Initialize:
 	test	ax, ax						; UMB segment or LITE_MODE_RAMVARS_SEGMENT?
 	jnz		SHORT .InitializeRamvars	; No need to steal RAM
 
+	mov		di, BDA.wBaseMem
 	mov		ds, ax
 	mov		al, [cs:ROMVARS.bStealSize]
-	sub		[BDA.wBaseMem], ax
+	sub		[di], ax
 %ifdef USE_186
-	imul	ax, [BDA.wBaseMem], 64
+	imul	ax, [di], 64
 %else
 	mov		al, 64
-	mul		WORD [BDA.wBaseMem]
+	mul		WORD [di]
 %endif
 
 .InitializeRamvars:

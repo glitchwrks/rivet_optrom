@@ -14,7 +14,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2023 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -28,7 +28,8 @@
 ; Visit http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 ;
 
-	ORG 0							; Code start offset 0000h
+	%define ORIGIN 0
+	ORG ORIGIN						; Code start offset 0000h
 
 	; We must define included libraries before including "AssemblyLibrary.inc".
 %define	EXCLUDE_FROM_XUB					; Exclude unused library functions

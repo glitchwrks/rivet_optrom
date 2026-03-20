@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -265,6 +265,8 @@ Interrupts_UnmaskInterruptControllerForDriveInDSDI:
 	in		al, dx				; Read Interrupt Mask Register
 %ifdef USE_NEC_V
 	eCLR1	al, cl				; Clear wanted bit
+%elifdef USE_386
+	btr		ax, cx				; Clear wanted bit
 %else
 	mov		ch, ~1				; Load bit mask to be rotated
 	rol		ch, cl				; Rotate mask to correct position for clearing

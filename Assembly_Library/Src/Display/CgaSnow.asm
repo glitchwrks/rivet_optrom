@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -33,15 +33,12 @@ SECTION .text
 ALIGN DISPLAY_JUMP_ALIGN
 CgaSnow_IsCgaPresent:
 	cmp		WORD [BDA.wVidPort], CGA_STATUS_REGISTER - OFFSET_TO_CGA_STATUS_REGISTER
+	clc
 	jne		SHORT .CgaNotFound
 
 	; All standard CGA modes use 25 rows but only EGA and later store it to BDA.
 	cmp		BYTE [BDA.bVidRows], 24		; BDA contains rows - 1
-	jae		SHORT .CgaNotFound
-	ret
-ALIGN DISPLAY_JUMP_ALIGN
 .CgaNotFound:
-	clc
 	ret
 
 

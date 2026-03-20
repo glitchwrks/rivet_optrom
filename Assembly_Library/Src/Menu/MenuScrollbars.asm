@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -189,9 +189,8 @@ MenuScrollbars_IsItemInCXonVisiblePage:
 	ja		SHORT .ItemIsNotVisible
 
 	call	MenuScrollbars_GetLastVisibleItemOnPageToAX
-	cmp		cx, ax
-	ja		SHORT .ItemIsNotVisible
-	stc		; Item is visible
+	cmp		ax, cx
+	cmc
 ALIGN MENU_JUMP_ALIGN, ret
 .ItemIsNotVisible:
 	ret
