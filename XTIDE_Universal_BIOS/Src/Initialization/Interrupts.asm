@@ -58,21 +58,35 @@ Interrupts_InitializeInterruptVectors:
 ;		AX, BX, CX, DX, SI, DI
 ;--------------------------------------------------------------------
 .InitializeInt13hAnd40h:
+%ifdef USE_386
+	push	eax			; Save the high WORD of EAX
+%endif
+
 %ifdef MODULE_MFM_COMPATIBILITY
+%ifdef USE_386
+	mov		eax, [es:BIOS_DISK_INTERRUPT_13h*4]	; Load old INT 13h vector
+	mov		[RAMVARS.fpMFMint13h], eax			; Store old INT 13h vector
+%else
 	mov		ax, [es:BIOS_DISK_INTERRUPT_13h*4+2]; Load old INT 13h segment
 	mov		[RAMVARS.fpMFMint13h+2], ax			; Store old INT 13h segment
 	xchg	dx, ax
 	mov		ax, [es:BIOS_DISK_INTERRUPT_13h*4]	; Load old INT 13h offset
 	mov		[RAMVARS.fpMFMint13h], ax			; Store old INT 13h offset
+%endif ; USE_386
 
 	mov		[RAMVARS.fpOldI13h+2], cs
 	mov		WORD [RAMVARS.fpOldI13h], Int13hMFMcompatibilityHandler
+%else ; ~MODULE_MFM_COMPATIBILITY
+%ifdef USE_386
+	mov		eax, [es:BIOS_DISK_INTERRUPT_13h*4]	; Load old INT 13h vector
+	mov		[RAMVARS.fpOldI13h], eax			; Store old INT 13h vector
 %else
 	mov		ax, [es:BIOS_DISK_INTERRUPT_13h*4+2]; Load old INT 13h segment
 	mov		[RAMVARS.fpOldI13h+2], ax			; Store old INT 13h segment
 	xchg	dx, ax
 	mov		ax, [es:BIOS_DISK_INTERRUPT_13h*4]	; Load old INT 13h offset
 	mov		[RAMVARS.fpOldI13h], ax				; Store old INT 13h offset
+%endif ; USE_386
 %endif
 
 	; Only store INT 13h handler to 40h if 40h is not already installed.
@@ -80,9 +94,17 @@ Interrupts_InitializeInterruptVectors:
 	; 40h from 13h. That system locks to infinite loop if we blindly copy 13h to 40h.
 	call	FloppyDrive_IsInt40hInstalled
 	jc		SHORT .Int40hAlreadyInstalled
+%ifdef USE_386
+	mov		[es:BIOS_DISKETTE_INTERRUPT_40h*4], eax		; Store old INT 13h vector
+%else
 	mov		[es:BIOS_DISKETTE_INTERRUPT_40h*4], ax		; Store old INT 13h offset
 	mov		[es:BIOS_DISKETTE_INTERRUPT_40h*4+2], dx	; Store old INT 13h segment
+%endif
 .Int40hAlreadyInstalled:
+
+%ifdef USE_386
+	pop		eax			; Restore the high WORD of EAX
+%endif
 
 	mov		al, BIOS_DISK_INTERRUPT_13h			; INT 13h interrupt vector offset
 %ifdef RELOCATE_INT13H_STACK

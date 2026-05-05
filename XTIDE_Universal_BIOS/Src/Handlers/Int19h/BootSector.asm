@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2024 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -36,23 +36,19 @@ SECTION .text
 BootSector_TryToLoadFromDriveDL_AndBoot:
 	call	DetectPrint_TryToBootFromDL
 	call	BootSector_LoadFirstSectorFromDriveDL
-	inc		dx												; Determine if hard drive or floppy drive without changing the CF
-	dec		dl
 	jnc		SHORT .FirstSectorLoadedToESBX
 
 	; Do not display timeout error (80h) for floppy drives since
 	; it most likely mean no diskette in drive. This way we do not
 	; display error code every time user intends to boot from hard disk
 	; when A then C boot order is used.
-	js		SHORT .PrintFailedToLoadErrorCode				; Hard Drive
-	cmp		ah, RET_HD_TIMEOUT
-	je		SHORT BootSector_LoadFirstSectorFromDriveDL.Return
-	cmp		ah, RET_HD_NOMEDIA
-	je		SHORT BootSector_LoadFirstSectorFromDriveDL.Return
+	call	BootSector_DriveDLIsEmptyFloppydrive
+	jz		SHORT BootSector_LoadFirstSectorFromDriveDL.Return
 .PrintFailedToLoadErrorCode:
 	jmp		DetectPrint_FailedToLoadFirstSector
 
 .FirstSectorLoadedToESBX:
+	test	dl, dl
 	jns		SHORT Int19h_JumpToBootSectorInESBXOrRomBoot	; Don't check for boot sector signature for floppy booter games
 	cmp		WORD [es:bx+510], 0AA55h						; Valid boot sector?
 	je		SHORT Int19h_JumpToBootSectorInESBXOrRomBoot	; With CF cleared
@@ -90,10 +86,40 @@ BootSector_LoadFirstSectorFromDriveDL:
 	dec		di								; Decrement retry counter (preserve CF)
 	jz		SHORT .Return					; Loop while retries left
 
+	; If the boot drive is a floppy drive and it is deemed to be empty then
+	; we give up immediately to avoid unnecessarily long delays when booting.
+	; This is particularly aggravating when using builds with first-A-then-C
+	; boot order (i.e. non-interactive builds such as the Tiny build).
+	call	BootSector_DriveDLIsEmptyFloppydrive
+	jz		SHORT .Return					; With CF set
+
 	; Reset drive and retry
 	xor		ax, ax							; AH=00h, Disk Controller Reset
 	test	dl, dl							; Floppy drive?
 	eCMOVS	ah, RESET_HARD_DISK				; AH=0Dh, Reset Hard Disk (Alternate reset)
 	int		BIOS_DISK_INTERRUPT_13h
 	jmp		SHORT .ReadRetryLoop
+
+
+;--------------------------------------------------------------------
+; BootSector_DriveDLIsEmptyFloppydrive
+;	Parameters:
+;		AH:		INT 13h error code
+;		DL:		Drive to boot from (translated, 00h or 80h)
+;	Returns:
+;		CF:		Set
+;		ZF:		Set if DL is a floppy drive with no diskette inserted
+;				Cleared if not
+;	Corrupts registers:
+;		Nothing
+;--------------------------------------------------------------------
+BootSector_DriveDLIsEmptyFloppydrive:
+	test	dl, dl
+	jnz		SHORT .Return					; Hard Drive
+	cmp		ah, RET_HD_TIMEOUT
+	je		SHORT .Return
+	cmp		ah, RET_HD_NOMEDIA
+.Return:
+	stc
+	ret
 

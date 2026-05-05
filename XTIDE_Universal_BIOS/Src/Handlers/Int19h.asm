@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -107,12 +107,19 @@ Int19h_BootLoaderHandler:
 	jb		SHORT .WaitUntilTimeToCloseHotkeyBar
 
 	; Restore system timer tick handler since hotkeys are no longer needed
+%ifdef USE_386
+	push	eax			; Save the high WORD of EAX
+	mov		eax, [BOOTVARS.hotkeyVars+HOTKEYVARS.fpPrevTimerHandler]
+	mov		[BIOS_SYSTEM_TIMER_TICK_INTERRUPT_08h*4], eax
+	pop		eax			; Restore the high WORD of EAX
+%else
 	cli
 	mov		ax, [BOOTVARS.hotkeyVars+HOTKEYVARS.fpPrevTimerHandler]
 	mov		[BIOS_SYSTEM_TIMER_TICK_INTERRUPT_08h*4], ax
 	mov		ax, [BOOTVARS.hotkeyVars+HOTKEYVARS.fpPrevTimerHandler+2]
 	mov		[BIOS_SYSTEM_TIMER_TICK_INTERRUPT_08h*4+2], ax
 	sti
+%endif
 
 	pop		ds
 %endif

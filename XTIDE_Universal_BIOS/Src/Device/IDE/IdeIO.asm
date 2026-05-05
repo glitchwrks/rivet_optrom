@@ -95,7 +95,7 @@ IdeIO_InputToALfromIdeRegisterInDL:
 ; 8 bytes. No lookup table.
 	test	dl, 1
 	jz		SHORT .InputToALfromRegisterInDX
-	xor		dl, 1001b						; Clear A3, Set A0
+	xor		dl, 1001b						; Set A3, Clear A0
 %endif
 
 .InputToALfromRegisterInDX:
@@ -207,7 +207,7 @@ IdeIO_OutputALtoIdeRegisterInDL:
 ; 9 bytes. No lookup table.
 	test	dl, 1
 	jz		SHORT OutputALtoRegisterInDX
-	xor		dl, 1001b						; Clear A3, Set A0
+	xor		dl, 1001b						; Set A3, Clear A0
 	SKIP2B	bx	; Skip eSHL_IM dx, 1
 %else
 ; 7 bytes. No lookup table.
