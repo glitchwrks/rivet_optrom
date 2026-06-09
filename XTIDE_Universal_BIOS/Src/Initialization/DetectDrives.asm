@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -150,10 +150,7 @@ DetectDrives_FromAllIDEControllers:
 	mov		cx, [RAMVARS.wDrvCntAndFlopCnt]	; Our count of hard disks
 	mov		al, [es:BDA.bHDCount]
 %ifndef MODULE_MFM_COMPATIBILITY
-	; This is excluded when MODULE_MFM_COMPATIBILITY is included because it doesn't make sense to use both at the same time anyway.
-	; Note that the option to "Remove other hard drives" is still visible in XTIDECFG.COM for builds including MODULE_MFM_COMPATIBILITY.
-	; Changing that option just won't do anything. We might want to remove the option for builds that contain MODULE_MFM_COMPATIBILITY
-	; but that would require a ROMVARS flag that is probably better spent on other things.
+	; This is excluded when MODULE_MFM_COMPATIBILITY is included because it doesn't make sense to use both at the same time.
 	test	BYTE [cs:ROMVARS.wFlags], FLG_ROMVARS_CLEAR_BDA_HD_COUNT	; Clears CF
 	jz		SHORT .ContinueInitialization
 %ifdef USE_UNDOC_INTEL
@@ -262,23 +259,40 @@ StartDetectionWithDriveSelectByteInBHandStringInCX:
 	; Fall to .ReadAtapiInfoFromDrive
 
 .ReadAtapiInfoFromDrive:					; Not yet implemented
+%ifdef MODULE_ATAPI
+	cmp		ax, ATAPI_SIGNATURE
+	je		SHORT DetectDrives_AtapiDeviceFound
+%endif
 	;call	ReadAtapiInfoFromDrive			; Assume CD-ROM
 	;jnc	SHORT _CreateBiosTablesForCDROM
+	; Fall to DetectDrives_DriveNotFound
 
-	;jmp	short DetectDrives_DriveNotFound
-;;; fall-through instead of previous jmp instruction
 ;--------------------------------------------------------------------
 ; DetectDrives_DriveNotFound
+; DetectDrives_AtapiDeviceFound
+; DetectDrives_ValidationFailed
 ;	Parameters:
 ;		Nothing
 ;	Returns:
 ;		CF:		Set (from DetectPrint_NullTerminatedStringFromCSSIandSetCF)
 ;	Corrupts registers:
-;		AX, SI
+;		AX, SI, DI
 ;--------------------------------------------------------------------
 DetectDrives_DriveNotFound:
 	mov		si, g_szNotFound
 	jmp		DetectPrint_NullTerminatedStringFromCSSIandSetCF
+
+%ifdef MODULE_ATAPI
+DetectDrives_AtapiDeviceFound:
+	mov		si, g_szAtapiDevice
+	jmp		DetectPrint_NullTerminatedStringFromCSSIandSetCF
+%endif
+
+%ifndef NO_ATAID_VALIDATION
+DetectDrives_ValidationFailed:
+	mov		si, g_szValidationFailed
+	jmp		DetectPrint_NullTerminatedStringFromCSSIandSetCF
+%endif
 
 
 ;--------------------------------------------------------------------
@@ -300,9 +314,8 @@ CreateBiosTablesForHardDisk:
 	push	bx
 	call	AtaID_VerifyFromESSI
 	pop		bx
-	jnz		SHORT DetectDrives_DriveNotFound
+	jnz		SHORT DetectDrives_ValidationFailed
 %endif
 	call	CreateDPT_FromAtaInformation
-	jc		SHORT DetectDrives_DriveNotFound
 	call	DriveDetectInfo_CreateForHardDisk
 	jmp		SHORT DetectPrint_DriveNameFromDrvDetectInfoInESBX

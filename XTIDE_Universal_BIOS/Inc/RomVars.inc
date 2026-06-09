@@ -4,7 +4,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -197,17 +197,18 @@ FLG_ROMVARS_SERIAL_SCANDETECT 			EQU	(1<<3)	; Scan COM ports at the end of drive
 
 ; Here in case the configuration needs to know functionality is present. Note! Changing the order/location of these flags
 ; also requires changes elsewhere as they are usually tested using byte-accesses for efficiency.
+FLG_ROMVARS_MODULE_MFM_COMPATIBILITY	EQU	(1<<4)
 FLG_ROMVARS_MODULE_POWER_MANAGEMENT		EQU	(1<<5)
 FLG_ROMVARS_MODULE_8BIT_IDE				EQU	(1<<6)
 FLG_ROMVARS_MODULE_8BIT_IDE_ADVANCED	EQU (1<<7)
 FLG_ROMVARS_MODULE_ADVANCED_ATA			EQU	(1<<8)
 FLG_ROMVARS_MODULE_BOOT_MENU			EQU	(1<<9)
-FLG_ROMVARS_MODULE_EBIOS				EQU	(1<<10)
+FLG_ROMVARS_MODULE_EBIOS				EQU	(1<<10)	; Currently unused
 FLG_ROMVARS_MODULE_HOTKEYS				EQU	(1<<11)
 FLG_ROMVARS_MODULE_IRQ					EQU	(1<<12)
 FLG_ROMVARS_MODULE_SERIAL				EQU (1<<13)
-FLG_ROMVARS_MODULE_SERIAL_FLOPPY		EQU (1<<14)
-FLG_ROMVARS_MODULE_STRINGS_COMPRESSED	EQU (1<<15)
+FLG_ROMVARS_MODULE_SERIAL_FLOPPY		EQU (1<<14)	; Currently unused
+FLG_ROMVARS_MODULE_STRINGS_COMPRESSED	EQU (1<<15)	; Currently unused
 
 
 ; Boot Menu Display Modes (see Assembly Library Display.inc for standard modes)

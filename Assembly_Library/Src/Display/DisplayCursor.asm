@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -76,7 +76,7 @@ DisplayCursor_SetShapeFromAX:
 ALIGN DISPLAY_JUMP_ALIGN
 DisplayCursor_SetCoordinatesFromAX:
 	xchg	dx, ax
-	mov		ax, [VIDEO_BDA.wColumns]		; Column count, 40 or 80
+	mov		al, [VIDEO_BDA.wColumns]		; Column count, 40 or 80
 	mul		dh								; AX = Column count * row index
 	xor		dh, dh
 	add		ax, dx							; Add column offset

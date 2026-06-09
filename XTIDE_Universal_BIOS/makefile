@@ -5,7 +5,7 @@
 # all       Removes existing files and builds binary files in \Build (without checksums)           #
 # small     Builds only binaries smaller than or equal to 8 kiB (without checksums)                #
 # large     Builds only binaries larger than 8 kiB (without checksums)                             #
-# custom    Builds custom binary without checksum (change DEFINES_CUSTOM / BIOS_SIZE_CUSTOM first) #
+# custom    Builds custom binary without checksum (make sure to change DEFINES_CUSTOM first)       #
 # clean     Removes all files from \Build                                                          #
 # checksum* Same as 'all' but also applies checksums to the binaries                               #
 # strings*  Compress src\Strings.asm to src\StringsCompressed.asm                                  #
@@ -19,6 +19,7 @@
 # MODULE_8BIT_IDE             Support for 8-BIT IDE cards like XTIDE                               #
 # MODULE_8BIT_IDE_ADVANCED    Support for memory mapped and DMA based cards like JRIDE and XTCF    #
 # MODULE_ADVANCED_ATA         Native support for some VLB IDE controllers (requires USE_386)       #
+# MODULE_ATAPI                Very simplistic detection of ATAPI devices                           #
 # MODULE_COMPATIBLE_TABLES    Support for ill behaving software that tries to access DPT directly  #
 # MODULE_BOOT_MENU            Boot Menu for selection of drive to boot from                        #
 # MODULE_EBIOS                Enhanced functions for accessing drives over 8.4 GB                  #
@@ -51,7 +52,7 @@
 # EXTRA_LOOP_UNROLLING_LARGE  Same as above but faster and uses more ROM space                     #
 #                                                                                                  #
 # ** AT Builds only (when USE_AT is defined)                                                       #
-# *** Use this only when certain known good drives are not being detected (eg WD Caviars)          #
+# *** Some known good drives fails validation (e.g. WD Caviars)                                    #
 ####################################################################################################
 
 ###########################################
@@ -130,31 +131,29 @@ DEFINES_XT_TINY = MODULE_STRINGS_COMPRESSED MODULE_8BIT_IDE NO_ATAID_VALIDATION 
 
 DEFINES_CUSTOM = ?
 
+# This set of defines is used only for 'make strings'. Include or exclude defines as needed. The combination of defines doesn't have
+# to make sense. This is just to ensure that all relevant strings are compressed when converting Strings.asm to StringsCompressed.asm.
+DEFINES_STRINGSCOMPRESSED = MODULE_STRINGS_COMPRESSED MODULE_BOOT_MENU MODULE_HOTKEYS MODULE_ADVANCED_ATA MODULE_8BIT_IDE MODULE_8BIT_IDE_ADVANCED MODULE_SERIAL MODULE_ATAPI
+
 
 ###################
 # Other variables #
 ###################
 
-# Target size of the BIOS, used in Main.asm for number of 512B blocks (CNT_ROM_BLOCKS) and by checksum Perl script below ('make checksum').
-# Note! The size must be a multiple of 2 KB for compatibility reasons.
-BIOS_SIZE_TINY = 4096
-BIOS_SIZE_SMALL = 8192
-BIOS_SIZE_LARGE = 12288
-BIOS_SIZE_CUSTOM = ?
-
 # Add -D in front of every preprocessor define declaration
-DEFS_XT = $(DEFINES_XT:%=-D%) -DBIOS_SIZE=$(BIOS_SIZE_SMALL)
-DEFS_XTPLUS = $(DEFINES_XTPLUS:%=-D%) -DBIOS_SIZE=$(BIOS_SIZE_SMALL)
-DEFS_AT = $(DEFINES_AT:%=-D%) -DBIOS_SIZE=$(BIOS_SIZE_SMALL)
-DEFS_386 = $(DEFINES_386:%=-D%) -DBIOS_SIZE=$(BIOS_SIZE_SMALL)
-DEFS_PS2 = $(DEFINES_PS2:%=-D%) -DBIOS_SIZE=$(BIOS_SIZE_SMALL)
-DEFS_XT_LARGE = $(DEFINES_XT_LARGE:%=-D%) -DBIOS_SIZE=$(BIOS_SIZE_LARGE)
-DEFS_XTPLUS_LARGE = $(DEFINES_XTPLUS_LARGE:%=-D%) -DBIOS_SIZE=$(BIOS_SIZE_LARGE)
-DEFS_AT_LARGE = $(DEFINES_AT_LARGE:%=-D%) -DBIOS_SIZE=$(BIOS_SIZE_LARGE)
-DEFS_386_LARGE = $(DEFINES_386_LARGE:%=-D%) -DBIOS_SIZE=$(BIOS_SIZE_LARGE)
-DEFS_PS2_LARGE = $(DEFINES_PS2_LARGE:%=-D%) -DBIOS_SIZE=$(BIOS_SIZE_LARGE)
-DEFS_XT_TINY = $(DEFINES_XT_TINY:%=-D%) -DBIOS_SIZE=$(BIOS_SIZE_TINY)
-DEFS_CUSTOM = $(DEFINES_CUSTOM:%=-D%) -DBIOS_SIZE=$(BIOS_SIZE_CUSTOM)
+DEFS_XT = $(DEFINES_XT:%=-D%)
+DEFS_XTPLUS = $(DEFINES_XTPLUS:%=-D%)
+DEFS_AT = $(DEFINES_AT:%=-D%)
+DEFS_386 = $(DEFINES_386:%=-D%)
+DEFS_PS2 = $(DEFINES_PS2:%=-D%)
+DEFS_XT_LARGE = $(DEFINES_XT_LARGE:%=-D%)
+DEFS_XTPLUS_LARGE = $(DEFINES_XTPLUS_LARGE:%=-D%)
+DEFS_AT_LARGE = $(DEFINES_AT_LARGE:%=-D%)
+DEFS_386_LARGE = $(DEFINES_386_LARGE:%=-D%)
+DEFS_PS2_LARGE = $(DEFINES_PS2_LARGE:%=-D%)
+DEFS_XT_TINY = $(DEFINES_XT_TINY:%=-D%)
+DEFS_CUSTOM = $(DEFINES_CUSTOM:%=-D%)
+DEFS_STRINGSCOMPRESSED = $(DEFINES_STRINGSCOMPRESSED:%=-D%)
 
 # Add -I in front of all header directories
 IHEADERS = $(HEADERS:%=-I%)
@@ -250,7 +249,7 @@ custom:
 	@echo * Custom version "$(TARGET)_cstm.bin" built.
 
 strings: src\Strings.asm
-	@$(AS) src\Strings.asm $(ASFLAGS) $(DEFS_AT_LARGE) -DCHECK_FOR_UNUSED_ENTRYPOINTS -DMODULE_STRINGS_COMPRESSED_PRECOMPRESS -o build\Strings.bin -l build\StringsPrecompress.lst
+	@$(AS) src\Strings.asm $(ASFLAGS) $(DEFS_STRINGSCOMPRESSED) -DCHECK_FOR_UNUSED_ENTRYPOINTS -DMODULE_STRINGS_COMPRESSED_PRECOMPRESS -o build\Strings.bin -l build\StringsPrecompress.lst
 	@perl ..\Tools\StringsCompress.pl < build\StringsPrecompress.lst > src\StringsCompressed.asm
 	@echo StringsCompressed.asm updated!
 
@@ -259,17 +258,17 @@ clean:
 	@echo Deleted "(*.*)" from "$(BUILD_DIR)/"
 
 checksum: all
-	@perl ..\Tools\checksum.pl $(TARGET)_tiny.bin $(BIOS_SIZE_TINY)
-	@perl ..\Tools\checksum.pl $(TARGET)_xt.bin $(BIOS_SIZE_SMALL)
-	@perl ..\Tools\checksum.pl $(TARGET)_xtp.bin $(BIOS_SIZE_SMALL)
-	@perl ..\Tools\checksum.pl $(TARGET)_at.bin $(BIOS_SIZE_SMALL)
-	@perl ..\Tools\checksum.pl $(TARGET)_386.bin $(BIOS_SIZE_SMALL)
-	@perl ..\Tools\checksum.pl $(TARGET)_ps2.bin $(BIOS_SIZE_SMALL)
-	@perl ..\Tools\checksum.pl $(TARGET)_xtl.bin $(BIOS_SIZE_LARGE)
-	@perl ..\Tools\checksum.pl $(TARGET)_xtpl.bin $(BIOS_SIZE_LARGE)
-	@perl ..\Tools\checksum.pl $(TARGET)_atl.bin $(BIOS_SIZE_LARGE)
-	@perl ..\Tools\checksum.pl $(TARGET)_386l.bin $(BIOS_SIZE_LARGE)
-	@perl ..\Tools\checksum.pl $(TARGET)_ps2l.bin $(BIOS_SIZE_LARGE)
+	@perl ..\Tools\checksum.pl $(TARGET)_tiny.bin
+	@perl ..\Tools\checksum.pl $(TARGET)_xt.bin
+	@perl ..\Tools\checksum.pl $(TARGET)_xtp.bin
+	@perl ..\Tools\checksum.pl $(TARGET)_at.bin
+	@perl ..\Tools\checksum.pl $(TARGET)_386.bin
+	@perl ..\Tools\checksum.pl $(TARGET)_ps2.bin
+	@perl ..\Tools\checksum.pl $(TARGET)_xtl.bin
+	@perl ..\Tools\checksum.pl $(TARGET)_xtpl.bin
+	@perl ..\Tools\checksum.pl $(TARGET)_atl.bin
+	@perl ..\Tools\checksum.pl $(TARGET)_386l.bin
+	@perl ..\Tools\checksum.pl $(TARGET)_ps2l.bin
 
 unused:
 	@echo "XT Tiny"

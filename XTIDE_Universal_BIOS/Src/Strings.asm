@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -35,11 +35,11 @@ g_szDetectOuter:		db	"%s at %s: ",NULL
 %ifdef MODULE_SERIAL
 g_szDetectCOM:			db	"COM%c%s",NULL
 g_szDetectCOMAuto:		db	" Detect",NULL
-g_szDetectCOMSmall:		db	"/%u%u00",NULL					; IDE Master at COM1/9600:
-g_szDetectCOMLarge:		db	"/%u.%uK",NULL					; IDE Master at COM1/19.2K:
+g_szDetectCOMSmall:		db	"/%u%u00",NULL					; Master at COM1/9600:
+g_szDetectCOMLarge:		db	"/%u.%uK",NULL					; Master at COM1/19.2K:
 %endif
 g_szDetectEnd:
-g_szDetectPort:			db	"%x",NULL						; IDE Master at 1F0h:
+g_szDetectPort:			db	"%x",NULL						; Master at 1F0h:
 
 %ifndef CHECK_FOR_UNUSED_ENTRYPOINTS
 	%if ((g_szDetectEnd-$$) & 0xff00) <> ((g_szDetectStart-$$) & 0xff00)
@@ -66,11 +66,17 @@ g_szBootMenuTitle:	db	"%s%c",LF,CR						; -=XTIDE ... =- and null (eaten)
 g_szDriveName:		db	"%z",LF,CR,NULL
 
 
-; Boot loader strings
+; Boot loader and drive detection strings
 g_szTryToBoot:			db	"Booting %c",ANGLE_QUOTE_RIGHT,"%c",LF,CR,NULL
 g_szBootSectorNotFound:	db	"Boot sector " 			; String fall through...
 g_szNotFound:			db	"not found",LF,CR,NULL
 g_szReadError:			db	"Error %x!",LF,CR,NULL
+%ifdef MODULE_ATAPI
+g_szAtapiDevice:		db	"ATAPI device",LF,CR,NULL
+%endif
+%ifndef NO_ATAID_VALIDATION
+g_szValidationFailed:	db	"failed validation",LF,CR,NULL
+%endif
 
 
 %ifdef MODULE_HOTKEYS

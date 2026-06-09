@@ -64,11 +64,10 @@
 SECTION .text
 
 ; ROM variables (must start at offset 0)
-CNT_ROM_BLOCKS		EQU		BIOS_SIZE / 512					; number of 512B blocks, 16 = 8kB BIOS
 istruc ROMVARS
-	at	ROMVARS.wRomSign,		dw	0AA55h					; PC ROM signature
-	at	ROMVARS.bRomSize,		db	CNT_ROM_BLOCKS			; ROM size in 512B blocks
-	at	ROMVARS.rgbJump,		jmp	Initialize_FromMainBiosRomSearch
+	at	ROMVARS.wRomSign,		dw	0AA55h					; PC Option ROM BIOS signature
+	at	ROMVARS.bRomSize,		db	CNT_ROM_BLOCKS			; ROM BIOS size in 512B blocks (defined below at the very end of the BIOS)
+	at	ROMVARS.rgbJump,		jmp	Initialize_FromMainBiosRomSearch	; Required to be a jump for compatibility with PhoenixBIOS 4.0 (see BIOS Programmer's Guide v10.pdf)
 	at	ROMVARS.rgbSign,		db	FLASH_SIGNATURE
 	at	ROMVARS.szTitle,		db	TITLE_STRING
 	at	ROMVARS.szVersion,		db	"r"
@@ -345,15 +344,14 @@ iend
 	%include "AH41h_CheckIfExtensionsPresent.asm"
 %endif
 
-
+	BIOS_SIZE		EQU		(($-$$) + 2047) & ~2047	; Align the size to a 2 kB boundary (required for compatibility reasons)
+	CNT_ROM_BLOCKS	EQU		BIOS_SIZE >> 9			; BIOS_SIZE / 512
 %ifndef CHECK_FOR_UNUSED_ENTRYPOINTS
 ; Although it's very unlikely to happen, we give warnings for builds that cannot be automatically checksummed due to the size being too large.
 ; In some cases it's theoretically possible to checksum the build anyway (manually) which is why these are warnings and not errors.
 %if BIOS_SIZE = 8192				; A small build, possibly a candidate for the ROM socket on a 3Com 3C503 card.
-	%if ($-$$) <= BIOS_SIZE			; Only give warnings when the problem isn't obvious anyway.
-		%if ($-$$) > BIOS_SIZE - 3
-			%warning "This build is too large to be auto-checksummed!"
-		%endif
+	%if ($-$$) > BIOS_SIZE - 3
+		%warning "This build is too large to be auto-checksummed!"
 	%endif
 %elif ($-$$) = BIOS_SIZE			; A large or tiny build.
 	%warning "This build is too large to be auto-checksummed!"

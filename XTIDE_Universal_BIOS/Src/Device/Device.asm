@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -181,15 +181,17 @@ ALIGN JUMP_ALIGN
 
 ;--------------------------------------------------------------------
 ; Device_ReadLBAlowRegisterToAL
+;
 ; Returns LBA low register / Sector number register contents.
 ; Note that this returns valid value only after transfer command (read/write/verify)
 ; has stopped to an error. Do not call this otherwise.
+;
 ;	Parameters:
 ;		DS:DI:	Ptr to DPT (in RAMVARS segment)
 ;	Returns:
 ;		AL:		Byte read from the device register
 ;	Corrupts registers:
-;		BX, DX
+;		BX, DX (only DX if MODULE_ATAPI is included)
 ;--------------------------------------------------------------------
 ;%ifdef MODULE_SERIAL	; IDE + Serial
 ;ALIGN JUMP_ALIGN

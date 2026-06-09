@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -117,7 +117,7 @@ DetectPrint_StartDetectWithAutodetectedBasePortInAXandIdeVarsInCSBP:
 	push	ax								; Push high order digits, or port address, or N/A
 	push	dx								; Push low order digit, or N/A
 
-	mov		si, g_szDetectOuter				; Load SI with default wrapper string "IDE %s at %s: "
+	mov		si, g_szDetectOuter				; Load SI with default wrapper string "%s at %s: "
 
 	jmp		SHORT DetectPrint_FormatCSSIfromParamsInSSBP
 

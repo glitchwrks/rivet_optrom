@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2024 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -78,7 +78,7 @@ IdeCommand_ResetMasterAndSlaveController:	; Unused entrypoint OK
 ;		CS:BP:	Ptr to IDEVARS
 ;	Returns:
 ;		AH:		INT 13h Error Code
-;		CF:		Cleared if success, Set if error
+;		CF:		Cleared if success, Set if error or ATAPI device detected
 ;	Corrupts registers:
 ;		AL, BX, CX, DX, SI, DI, ES
 ;--------------------------------------------------------------------
@@ -90,6 +90,19 @@ IdeCommand_IdentifyDeviceToBufferInESSIwithDriveSelectByteInBH:		; Unused entryp
 	call	CreateDPT_StoreIdevarsOffsetAndBasePortFromCSBPtoDPTinDSDI
 	call	IdeDPT_StoreDeviceTypeToDPTinDSDIfromIdevarsInCSBP
 	mov		BYTE [di+DPT_ATA.bBlockSize], 1	; Block = 1 sector
+
+%ifdef MODULE_ATAPI
+	push	dx
+	mov		dl, LBA_HIGH_REGISTER
+	call	IdeCommand_ReadIdeRegisterInDLtoAL
+	mov		ah, al
+	mov		dl, LBA_MIDDLE_REGISTER
+	call	IdeCommand_ReadIdeRegisterInDLtoAL
+	pop		dx
+	cmp		ax, ATAPI_SIGNATURE
+	stc
+	je		SHORT .AtapiDeviceDetected
+%endif
 
 	; Wait until drive motors have reached full speed
 	cmp		bp, BYTE ROMVARS.ideVars0	; First controller?
@@ -127,6 +140,7 @@ IdeCommand_IdentifyDeviceToBufferInESSIwithDriveSelectByteInBH:		; Unused entryp
 	; Clean stack and return
 	lea		sp, [bp+SIZE_OF_IDEPACK_WITHOUT_INTPACK]	; This assumes BP hasn't changed between Idepack_FakeToSSBP and here
 	pop		bp
+.AtapiDeviceDetected:
 	ret
 
 
@@ -295,19 +309,45 @@ OutputSectorCountAndAddress:
 
 ;--------------------------------------------------------------------
 ; IdeCommand_ReadLBAlowRegisterToAL
+;
 ; Returns LBA low register / Sector number register contents.
 ; Note that this returns valid value only after transfer command (read/write/verify)
 ; has stopped to an error. Do not call this otherwise.
+;
 ;	Parameters:
 ;		DS:DI:	Ptr to DPT (in RAMVARS segment)
 ;	Returns:
 ;		AL:		Byte read from the register
 ;	Corrupts registers:
-;		BX, DX
+;		BX, DX (only DX if MODULE_ATAPI is included)
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 IdeCommand_ReadLBAlowRegisterToAL:	; Unused entrypoint OK
 	; HOB bit (defined in 48-bit address feature set) should be zero by default
 	; so we get the correct value for CHS, LBA28 and LBA48 drives and commands
+%ifndef MODULE_ATAPI
 	INPUT_TO_AL_FROM_IDE_REGISTER	LBA_LOW_REGISTER
 	ret
+%else
+	mov		dl, LBA_LOW_REGISTER
+	; Fall to IdeCommand_ReadIdeRegisterInDLtoAL
+
+;--------------------------------------------------------------------
+; IdeCommand_ReadIdeRegisterInDLtoAL
+;
+;	Parameters:
+;		DL:		IDE register to read
+;		DS:DI:	Ptr to DPT (in RAMVARS segment)
+;	Returns:
+;		AL:		Byte read from the register
+;	Corrupts registers:
+;		DX
+;--------------------------------------------------------------------
+ALIGN JUMP_ALIGN
+IdeCommand_ReadIdeRegisterInDLtoAL:
+	push	bx
+	INPUT_TO_AL_FROM_IDE_REGISTER	dl
+	pop		bx
+	ret
+%endif ; MODULE_ATAPI
+

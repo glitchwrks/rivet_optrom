@@ -106,6 +106,7 @@ MenuAttribute_GetToAXfromTypeInSI:
 	shr		al, 1						; Even modes (0 and 2) are B/W
 	jc		SHORT .LoadColorAttribute
 
+%ifndef CHECK_FOR_UNUSED_ENTRYPOINTS
 %if (rgcColorAttributes-$$) & 0FF00h = (rgcMonochromeAttributes-$$) & 0FF00h	; Are the base addresses of all three strucs on the same page?
 %ifndef ORIGIN
 ; This kludge is needed due to NASM's completely broken implementation of the ORG directive.
@@ -142,6 +143,7 @@ ALIGN MENU_JUMP_ALIGN
 	add		si, rgcColorAttributes
 .LoadAttributeAndReturn:
 %endif
+%endif ; CHECK_FOR_UNUSED_ENTRYPOINTS
 	cs lodsb							; Load from [CS:SI] to AL
 
 	pop		ds

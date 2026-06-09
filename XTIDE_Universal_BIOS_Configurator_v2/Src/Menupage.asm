@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -87,16 +87,16 @@ ALIGN JUMP_ALIGN
 Menupage_GetVisibleMenuitemsToAXfromDSDI:
 	xor		ax, ax
 	mov		cx, [di+MENUPAGE.wMenuitems]
-	lea		bx, [di+MENUPAGE.rgMenuitem]
+	lea		bx, [di+MENUPAGE.rgMenuitem+MENUITEM.bFlags]
 
 ALIGN JUMP_ALIGN
-.CheckVisibilityFromNextMenuitem:
-	test	BYTE [bx+MENUITEM.bFlags], FLG_MENUITEM_VISIBLE
+.CheckVisibilityForNextMenuitem:
+	test	BYTE [bx], FLG_MENUITEM_VISIBLE
 	jz		SHORT .PrepareToLoop
 	inc		ax
 .PrepareToLoop:
 	add		bx, BYTE MENUITEM_size
-	loop	.CheckVisibilityFromNextMenuitem
+	loop	.CheckVisibilityForNextMenuitem
 	ret
 
 

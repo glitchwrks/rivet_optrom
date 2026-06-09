@@ -4,7 +4,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -84,8 +84,12 @@ ChecksumSystemBios:
 	inc		bx
 	cmp		ax, dx
 	jne		SHORT .NextChecksum
+	test	BYTE [di+ROMVARS.wFlags], FLG_ROMVARS_MODULE_MFM_COMPATIBILITY
+	mov		dx, g_szDlgIncompatibleBuild
+	jnz		SHORT .DisplayNotificationFromCSDX
 	or		BYTE [di+ROMVARS.wFlags], FLG_ROMVARS_CLEAR_BDA_HD_COUNT
 	mov		dx, g_szDlgBadBiosFound
+.DisplayNotificationFromCSDX:
 	jmp		Dialogs_DisplayNotificationFromCSDX
 
 ALIGN WORD_ALIGN

@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2013 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -99,7 +99,6 @@ COMMAND_SET_FEATURES					EQU		0EFh
 COMMAND_STAND_BY						EQU		0E2h
 COMMAND_IDLE							EQU		0E3h
 
-
 ; Subcommands for COMMAND_SET_FEATURES
 FEATURE_ENABLE_8BIT_PIO_TRANSFER_MODE		EQU		01h		; CFA feature set only
 FEATURE_ENABLE_WRITE_CACHE					EQU		02h
@@ -112,5 +111,7 @@ FEATURE_SET_TRANSFER_MODE					EQU		03h		; Transfer mode goes to the Sector Count
 	PIO_DEFAULT_MODE_DISABLE_IORDY			EQU		1h
 	PIO_FLOW_CONTROL_MODE_xxx				EQU		(1<<3)	; Bits 2...0 hold the PIO mode
 
+; ATAPI device specific stuff (should probably be in its own include file)
+ATAPI_SIGNATURE								EQU		0EB14h	; Read from LBA_HIGH_REGISTER and LBA_MIDDLE_REGISTER
 
 %endif ; IDEREGISTERS_INC

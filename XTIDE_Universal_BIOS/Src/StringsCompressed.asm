@@ -13,7 +13,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -60,17 +60,17 @@ g_szDetectCOMAuto:		; db	" Detect",NULL
                   		; db	 20h,  44h,  65h,  74h,  65h,  63h,  74h,  00h    ; uncompressed
                   		  db	 20h,  4ah,  6bh,  7ah,  6bh,  69h, 0bah          ; compressed
 
-g_szDetectCOMSmall:		; db	"/%u%u00",NULL					; IDE Master at COM1/9600:
+g_szDetectCOMSmall:		; db	"/%u%u00",NULL					; Master at COM1/9600:
                    		; db	 2fh,  25h,  75h,  25h,  75h,  30h,  30h,  00h    ; uncompressed
                    		  db	 2ah,  35h,  35h,  33h,  13h                      ; compressed
 
-g_szDetectCOMLarge:		; db	"/%u.%uK",NULL					; IDE Master at COM1/19.2K:
+g_szDetectCOMLarge:		; db	"/%u.%uK",NULL					; Master at COM1/19.2K:
                    		; db	 2fh,  25h,  75h,  2eh,  25h,  75h,  4bh,  00h    ; uncompressed
                    		  db	 2ah,  35h,  29h,  35h,  91h                      ; compressed
 
 %endif
 g_szDetectEnd:
-g_szDetectPort:			; db	"%x",NULL						; IDE Master at 1F0h:
+g_szDetectPort:			; db	"%x",NULL						; Master at 1F0h:
                			; db	 25h,  78h,  00h    ; uncompressed
                			  db	 17h                ; compressed
 
@@ -127,7 +127,7 @@ g_szDriveName:		; db	"%z",LF,CR,NULL
 
 
 
-; Boot loader strings
+; Boot loader and drive detection strings
 g_szTryToBoot:			; db	"Booting %c",ANGLE_QUOTE_RIGHT,"%c",LF,CR,NULL
               			; db	 42h,  6fh,  6fh,  74h,  69h,  6eh,  67h,  20h,  25h,  63h, 0afh,  25h,  63h,  0ah,  0dh,  00h    ; uncompressed
               			  db	 48h,  75h,  75h,  7ah,  6fh,  74h, 0edh,  3ch,  24h,  3ch,  19h                                  ; compressed
@@ -144,6 +144,18 @@ g_szReadError:			; db	"Error %x!",LF,CR,NULL
               			; db	 45h,  72h,  72h,  6fh,  72h,  20h,  25h,  78h,  21h,  0ah,  0dh,  00h    ; uncompressed
               			  db	 4bh,  78h,  78h,  75h, 0f8h,  37h,  25h,  19h                            ; compressed
 
+%ifdef MODULE_ATAPI
+g_szAtapiDevice:		; db	"ATAPI device",LF,CR,NULL
+                		; db	 41h,  54h,  41h,  50h,  49h,  20h,  64h,  65h,  76h,  69h,  63h,  65h,  0ah,  0dh,  00h    ; uncompressed
+                		  db	 47h,  5ah,  47h,  56h, 0cfh,  6ah,  6bh,  7ch,  6fh,  69h,  6bh,  19h                      ; compressed
+
+%endif
+%ifndef NO_ATAID_VALIDATION
+g_szValidationFailed:	; db	"failed validation",LF,CR,NULL
+                     	; db	 66h,  61h,  69h,  6ch,  65h,  64h,  20h,  76h,  61h,  6ch,  69h,  64h,  61h,  74h,  69h,  6fh,  6eh,  0ah,  0dh,  00h    ; uncompressed
+                     	  db	 6ch,  67h,  6fh,  72h,  6bh, 0eah,  7ch,  67h,  72h,  6fh,  6ah,  67h,  7ah,  6fh,  75h,  74h,  19h                      ; compressed
+
+%endif
 
 
 %ifdef MODULE_HOTKEYS
@@ -614,40 +626,40 @@ StringsCompressed_TranslatesAndFormats:
 %endif
 
 ;; translated usage stats
-;; 56:9
 ;; 48:2
-;; 32:34
-;; 34:3
-;; 33:1
-;; 49:3
-;; 47:2
-;; 172:2
-;; 53:2
-;; 54:3
-;; 45:2
-;; 179:8
-;; 46:3
-;; 51:3
-;; 171:2
-;; 50:2
 ;; 181:1
-;; 200:1
+;; 172:2
 ;; 175:1
+;; 49:3
+;; 54:3
+;; 56:9
+;; 33:1
+;; 51:3
+;; 200:1
+;; 53:2
+;; 46:3
 ;; 44:1
+;; 34:3
+;; 45:2
+;; 32:34
+;; 50:2
+;; 47:2
+;; 171:2
+;; 179:8
 ;; total translated: 20
 
 ;; format usage stats
-;; u:6
 ;; 2-I:1
-;; 5-u:2
-;; z:2
-;; nl:12
-;; 5-x:1
-;; s:14
-;; x:5
-;; A:4
-;; 2-u:1
+;; nl:14
 ;; c:13
+;; x:5
+;; u:6
+;; z:2
+;; 5-u:2
+;; s:14
+;; 2-u:1
+;; 5-x:1
+;; A:4
 ;; total format: 11
 
 ;; alphabet usage stats
@@ -658,7 +670,7 @@ StringsCompressed_TranslatesAndFormats:
 ;; 62,>:
 ;; 63,?:
 ;; 64,@:1
-;; 65,A:5
+;; 65,A:7
 ;; 66,B:11
 ;; 67,C:3
 ;; 68,D:11
@@ -666,18 +678,18 @@ StringsCompressed_TranslatesAndFormats:
 ;; 70,F:3
 ;; 71,G:3
 ;; 72,H:2
-;; 73,I:1
+;; 73,I:2
 ;; 74,J:1
 ;; 75,K:1
 ;; 76,L:4
 ;; 77,M:7
 ;; 78,N:2
 ;; 79,O:3
-;; 80,P:1
+;; 80,P:2
 ;; 81,Q:1
 ;; 82,R:7
 ;; 83,S:3
-;; 84,T:2
+;; 84,T:3
 ;; 85,U:2
 ;; 86,V:
 ;; 87,W:
@@ -690,28 +702,28 @@ StringsCompressed_TranslatesAndFormats:
 ;; 94,^:
 ;; 95,_:
 ;; 96,`:
-;; 97,a:7
+;; 97,a:10
 ;; 98,b:
-;; 99,c:6
-;; 100,d:6
-;; 101,e:15
-;; 102,f:1
+;; 99,c:7
+;; 100,d:9
+;; 101,e:18
+;; 102,f:2
 ;; 103,g:2
 ;; 104,h:
-;; 105,i:9
+;; 105,i:13
 ;; 106,j:
 ;; 107,k:4
-;; 108,l:5
+;; 108,l:7
 ;; 109,m:2
-;; 110,n:11
-;; 111,o:20
+;; 110,n:12
+;; 111,o:21
 ;; 112,p:3
 ;; 113,q:
 ;; 114,r:11
 ;; 115,s:7
-;; 116,t:15
+;; 116,t:16
 ;; 117,u:4
-;; 118,v:3
+;; 118,v:5
 ;; 119,w:1
 ;; 120,x:
 ;; 121,y:2

@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2025 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@ MenuCharOut_MenuTeletypeOutputWithAutomaticLineChange:
 ALIGN MENU_JUMP_ALIGN
 MenuCharOut_MenuTeletypeOutput:
 	cmp		al, CR
-	je		SHORT PrintCRandAdjustOffsetForStartOfLine
+	je		SHORT PrintCRandAdjustOffsetForStartOfLine.CRinAL
 	jmp		DisplayCharOut_TeletypeOutputWithAttribute
 
 
@@ -76,6 +76,7 @@ MenuCharOut_PrintLFCRandAdjustOffsetForStartOfLine:
 ALIGN MENU_JUMP_ALIGN
 PrintCRandAdjustOffsetForStartOfLine:
 	mov		al, CR
+.CRinAL:
 	call	DisplayCharOut_BiosTeletypeOutput
 	eMOVZX	ax, BYTE [VIDEO_BDA.displayContext+DISPLAY_CONTEXT.wCharOutParam]
 	add		di, ax

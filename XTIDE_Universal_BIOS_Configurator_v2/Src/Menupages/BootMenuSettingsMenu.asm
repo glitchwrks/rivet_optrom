@@ -3,7 +3,7 @@
 
 ;
 ; XTIDE Universal BIOS and Associated Tools
-; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2023 by XTIDE Universal BIOS Team.
+; Copyright (C) 2009-2010 by Tomi Tilli, 2011-2026 by XTIDE Universal BIOS Team.
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ istruc MENUITEM
 	at	MENUITEM.szName,			dw	g_szItemBootDispMode
 	at	MENUITEM.szQuickInfo,		dw	g_szNfoDispMode
 	at	MENUITEM.szHelp,			dw	g_szNfoDispMode
-	at	MENUITEM.bFlags,			db	FLG_MENUITEM_VISIBLE
+	at	MENUITEM.bFlags,			db	FLG_MENUITEM_VISIBLE | FLG_MENUITEM_MODIFY_MENU
 	at	MENUITEM.bType,				db	TYPE_MENUITEM_MULTICHOICE
 	at	MENUITEM.itemValue + ITEM_VALUE.wRomvarsValueOffset,		dw	ROMVARS.wDisplayMode
 	at	MENUITEM.itemValue + ITEM_VALUE.szDialogTitle,				dw	g_szDlgBootDispMode
@@ -61,7 +61,7 @@ istruc MENUITEM
 	at	MENUITEM.szName,			dw	g_szItemColorTheme
 	at	MENUITEM.szQuickInfo,		dw	g_szNfoColorTheme
 	at	MENUITEM.szHelp,			dw	g_szHelpColorTheme
-	at	MENUITEM.bFlags,			db	FLG_MENUITEM_VISIBLE | FLG_MENUITEM_MODIFY_MENU
+	at	MENUITEM.bFlags,			db	FLG_MENUITEM_MODIFY_MENU
 	at	MENUITEM.bType,				db	TYPE_MENUITEM_MULTICHOICE
 	at	MENUITEM.itemValue + ITEM_VALUE.wRomvarsValueOffset,		dw	ROMVARS.pColorTheme		; Only ever read - never modified
 	at	MENUITEM.itemValue + ITEM_VALUE.szDialogTitle,				dw	g_szDlgColorTheme
@@ -141,7 +141,7 @@ istruc MENUITEM
 	at	MENUITEM.szName,			dw	g_szItemClearBdaDriveCount
 	at	MENUITEM.szQuickInfo,		dw	g_szNfoClearBdaDriveCount
 	at	MENUITEM.szHelp,			dw	g_szHelpClearBdaDriveCount
-	at	MENUITEM.bFlags,			db	FLG_MENUITEM_VISIBLE | FLG_MENUITEM_FLAGVALUE
+	at	MENUITEM.bFlags,			db	FLG_MENUITEM_FLAGVALUE
 	at	MENUITEM.bType,				db	TYPE_MENUITEM_MULTICHOICE
 	at	MENUITEM.itemValue + ITEM_VALUE.wRomvarsValueOffset,		dw	ROMVARS.wFlags
 	at	MENUITEM.itemValue + ITEM_VALUE.szDialogTitle,				dw	g_szDlgClearBdaDriveCount
@@ -182,57 +182,102 @@ g_rgszValueToStringLookupForColorTheme:
 	dw	g_szValueColorTheme3
 	dw	g_szValueColorTheme4
 	dw	g_szValueColorTheme5
+	dw	g_szValueColorTheme6
+	dw	g_szValueColorTheme7
+	dw	g_szValueColorTheme8
+	dw	g_szValueColorTheme9
+	dw	g_szValueColorTheme10
 
 ColorThemeTable:
 ; Note! If there's ever a need to add, remove or change a theme or reorder the themes then the ROMVARS version must be incremented.
 	; Classic (default)
-	db	COLOR_ATTRIBUTE(COLOR_YELLOW, COLOR_BLUE)							; .cBordersAndBackground
-	db	COLOR_ATTRIBUTE(COLOR_GRAY, COLOR_BLACK)							; .cShadow
-	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_BLUE)						; .cTitle
-	db	COLOR_ATTRIBUTE(COLOR_WHITE, COLOR_BLUE)							; .cItem
-	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_CYAN)						; .cHighlightedItem
-	db	COLOR_ATTRIBUTE(COLOR_RED, COLOR_BLUE) | FLG_COLOR_BLINK			; .cHurryTimeout
-	db	COLOR_ATTRIBUTE(COLOR_GREEN, COLOR_BLUE)							; .cNormalTimeout
+	db	COLOR_ATTRIBUTE(COLOR_YELLOW, COLOR_BLUE)								; .cBordersAndBackground
+	db	COLOR_ATTRIBUTE(COLOR_GRAY, COLOR_BLACK)								; .cShadow
+	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_BLUE)							; .cTitle
+	db	COLOR_ATTRIBUTE(COLOR_WHITE, COLOR_BLUE)								; .cItem
+	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_CYAN)							; .cHighlightedItem
+	db	COLOR_ATTRIBUTE(COLOR_RED, COLOR_BLUE) | FLG_COLOR_BLINK				; .cHurryTimeout
+	db	COLOR_ATTRIBUTE(COLOR_GREEN, COLOR_BLUE)								; .cNormalTimeout
 	; Argon Blue
-	db	COLOR_ATTRIBUTE(COLOR_LIGHT_BLUE, COLOR_BLACK)						; .cBordersAndBackground
-	db	COLOR_ATTRIBUTE(COLOR_GRAY, COLOR_BLACK)							; .cShadow
-	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_BLACK)					; .cTitle
-	db	COLOR_ATTRIBUTE(COLOR_WHITE, COLOR_BLACK)							; .cItem
-	db	COLOR_ATTRIBUTE(COLOR_LIGHT_BLUE, COLOR_BLACK)						; .cHighlightedItem
-	db	COLOR_ATTRIBUTE(COLOR_LIGHT_BLUE, COLOR_BLACK) | FLG_COLOR_BLINK	; .cHurryTimeout
-	db	COLOR_ATTRIBUTE(COLOR_LIGHT_BLUE, COLOR_BLACK)						; .cNormalTimeout
+	db	COLOR_ATTRIBUTE(COLOR_LIGHT_BLUE, COLOR_BLACK)							; .cBordersAndBackground
+	db	COLOR_ATTRIBUTE(COLOR_GRAY, COLOR_BLACK)								; .cShadow
+	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_BLACK)						; .cTitle
+	db	COLOR_ATTRIBUTE(COLOR_WHITE, COLOR_BLACK)								; .cItem
+	db	COLOR_ATTRIBUTE(COLOR_LIGHT_BLUE, COLOR_BLACK)							; .cHighlightedItem
+	db	COLOR_ATTRIBUTE(COLOR_LIGHT_BLUE, COLOR_BLACK) | FLG_COLOR_BLINK		; .cHurryTimeout
+	db	COLOR_ATTRIBUTE(COLOR_LIGHT_BLUE, COLOR_BLACK)							; .cNormalTimeout
 	; Neon Red
-	db	COLOR_ATTRIBUTE(COLOR_LIGHT_RED, COLOR_BLACK)						; .cBordersAndBackground
-	db	COLOR_ATTRIBUTE(COLOR_GRAY, COLOR_BLACK)							; .cShadow
-	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_BLACK)					; .cTitle
-	db	COLOR_ATTRIBUTE(COLOR_WHITE, COLOR_BLACK)							; .cItem
-	db	COLOR_ATTRIBUTE(COLOR_LIGHT_RED, COLOR_BLACK)						; .cHighlightedItem
-	db	COLOR_ATTRIBUTE(COLOR_LIGHT_RED, COLOR_BLACK) | FLG_COLOR_BLINK		; .cHurryTimeout
-	db	COLOR_ATTRIBUTE(COLOR_LIGHT_RED, COLOR_BLACK)						; .cNormalTimeout
+	db	COLOR_ATTRIBUTE(COLOR_LIGHT_RED, COLOR_BLACK)							; .cBordersAndBackground
+	db	COLOR_ATTRIBUTE(COLOR_GRAY, COLOR_BLACK)								; .cShadow
+	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_BLACK)						; .cTitle
+	db	COLOR_ATTRIBUTE(COLOR_WHITE, COLOR_BLACK)								; .cItem
+	db	COLOR_ATTRIBUTE(COLOR_LIGHT_RED, COLOR_BLACK)							; .cHighlightedItem
+	db	COLOR_ATTRIBUTE(COLOR_LIGHT_RED, COLOR_BLACK) | FLG_COLOR_BLINK			; .cHurryTimeout
+	db	COLOR_ATTRIBUTE(COLOR_LIGHT_RED, COLOR_BLACK)							; .cNormalTimeout
 	; Phosphor Green
-	db	COLOR_ATTRIBUTE(COLOR_LIGHT_GREEN, COLOR_BLACK)						; .cBordersAndBackground
-	db	COLOR_ATTRIBUTE(COLOR_GRAY, COLOR_BLACK)							; .cShadow
-	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_BLACK)					; .cTitle
-	db	COLOR_ATTRIBUTE(COLOR_WHITE, COLOR_BLACK)							; .cItem
-	db	COLOR_ATTRIBUTE(COLOR_LIGHT_GREEN, COLOR_BLACK)						; .cHighlightedItem
-	db	COLOR_ATTRIBUTE(COLOR_LIGHT_GREEN, COLOR_BLACK) | FLG_COLOR_BLINK	; .cHurryTimeout
-	db	COLOR_ATTRIBUTE(COLOR_LIGHT_GREEN, COLOR_BLACK)						; .cNormalTimeout
+	db	COLOR_ATTRIBUTE(COLOR_LIGHT_GREEN, COLOR_BLACK)							; .cBordersAndBackground
+	db	COLOR_ATTRIBUTE(COLOR_GRAY, COLOR_BLACK)								; .cShadow
+	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_BLACK)						; .cTitle
+	db	COLOR_ATTRIBUTE(COLOR_WHITE, COLOR_BLACK)								; .cItem
+	db	COLOR_ATTRIBUTE(COLOR_LIGHT_GREEN, COLOR_BLACK)							; .cHighlightedItem
+	db	COLOR_ATTRIBUTE(COLOR_LIGHT_GREEN, COLOR_BLACK) | FLG_COLOR_BLINK		; .cHurryTimeout
+	db	COLOR_ATTRIBUTE(COLOR_LIGHT_GREEN, COLOR_BLACK)							; .cNormalTimeout
 	; Moon Surface
-	db	COLOR_ATTRIBUTE(COLOR_GRAY, COLOR_BLACK)							; .cBordersAndBackground
-	db	COLOR_ATTRIBUTE(COLOR_GRAY, COLOR_BLACK)							; .cShadow
-	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_BLACK)					; .cTitle
-	db	COLOR_ATTRIBUTE(COLOR_WHITE, COLOR_BLACK)							; .cItem
-	db	COLOR_ATTRIBUTE(COLOR_BROWN, COLOR_BLACK)							; .cHighlightedItem
-	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_BLACK) | FLG_COLOR_BLINK	; .cHurryTimeout
-	db	COLOR_ATTRIBUTE(COLOR_WHITE, COLOR_BLACK)							; .cNormalTimeout
+	db	COLOR_ATTRIBUTE(COLOR_GRAY, COLOR_BLACK)								; .cBordersAndBackground
+	db	COLOR_ATTRIBUTE(COLOR_GRAY, COLOR_BLACK)								; .cShadow
+	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_BLACK)						; .cTitle
+	db	COLOR_ATTRIBUTE(COLOR_WHITE, COLOR_BLACK)								; .cItem
+	db	COLOR_ATTRIBUTE(COLOR_BROWN, COLOR_BLACK)								; .cHighlightedItem
+	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_BLACK) | FLG_COLOR_BLINK		; .cHurryTimeout
+	db	COLOR_ATTRIBUTE(COLOR_WHITE, COLOR_BLACK)								; .cNormalTimeout
 	; Toxic Waste
-	db	COLOR_ATTRIBUTE(COLOR_LIGHT_GREEN, COLOR_BLACK)						; .cBordersAndBackground
-	db	COLOR_ATTRIBUTE(COLOR_GRAY, COLOR_BLACK)							; .cShadow
-	db	COLOR_ATTRIBUTE(COLOR_LIGHT_GREEN, COLOR_BLACK)						; .cTitle
-	db	COLOR_ATTRIBUTE(COLOR_LIGHT_CYAN, COLOR_BLACK)						; .cItem
-	db	COLOR_ATTRIBUTE(COLOR_LIGHT_CYAN, COLOR_BLUE)						; .cHighlightedItem
-	db	COLOR_ATTRIBUTE(COLOR_LIGHT_RED, COLOR_BLACK) | FLG_COLOR_BLINK		; .cHurryTimeout
-	db	COLOR_ATTRIBUTE(COLOR_LIGHT_RED, COLOR_BLACK)						; .cNormalTimeout
+	db	COLOR_ATTRIBUTE(COLOR_LIGHT_GREEN, COLOR_BLACK)							; .cBordersAndBackground
+	db	COLOR_ATTRIBUTE(COLOR_GRAY, COLOR_BLACK)								; .cShadow
+	db	COLOR_ATTRIBUTE(COLOR_LIGHT_GREEN, COLOR_BLACK)							; .cTitle
+	db	COLOR_ATTRIBUTE(COLOR_LIGHT_CYAN, COLOR_BLACK)							; .cItem
+	db	COLOR_ATTRIBUTE(COLOR_LIGHT_CYAN, COLOR_BLUE)							; .cHighlightedItem
+	db	COLOR_ATTRIBUTE(COLOR_LIGHT_RED, COLOR_BLACK) | FLG_COLOR_BLINK			; .cHurryTimeout
+	db	COLOR_ATTRIBUTE(COLOR_LIGHT_RED, COLOR_BLACK)							; .cNormalTimeout
+	; Amethyst
+	db	COLOR_ATTRIBUTE(COLOR_LIGHT_MAGENTA, COLOR_MAGENTA)						; .cBordersAndBackground
+	db	COLOR_ATTRIBUTE(COLOR_GRAY, COLOR_BLACK)								; .cShadow
+	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_MAGENTA)						; .cTitle
+	db	COLOR_ATTRIBUTE(COLOR_WHITE, COLOR_MAGENTA)								; .cItem
+	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_MAGENTA)						; .cHighlightedItem
+	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_MAGENTA) | FLG_COLOR_BLINK	; .cHurryTimeout
+	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_MAGENTA)						; .cNormalTimeout
+	; Emerald
+	db	COLOR_ATTRIBUTE(COLOR_LIGHT_GREEN, COLOR_GREEN)							; .cBordersAndBackground
+	db	COLOR_ATTRIBUTE(COLOR_GRAY, COLOR_BLACK)								; .cShadow
+	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_GREEN)						; .cTitle
+	db	COLOR_ATTRIBUTE(COLOR_WHITE, COLOR_GREEN)								; .cItem
+	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_GREEN)						; .cHighlightedItem
+	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_GREEN) | FLG_COLOR_BLINK		; .cHurryTimeout
+	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_GREEN)						; .cNormalTimeout
+	; Sapphire
+	db	COLOR_ATTRIBUTE(COLOR_LIGHT_BLUE, COLOR_BLUE)							; .cBordersAndBackground
+	db	COLOR_ATTRIBUTE(COLOR_GRAY, COLOR_BLACK)								; .cShadow
+	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_BLUE)							; .cTitle
+	db	COLOR_ATTRIBUTE(COLOR_WHITE, COLOR_BLUE)								; .cItem
+	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_BLUE)							; .cHighlightedItem
+	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_BLUE) | FLG_COLOR_BLINK		; .cHurryTimeout
+	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_BLUE)							; .cNormalTimeout
+	; Ruby
+	db	COLOR_ATTRIBUTE(COLOR_LIGHT_RED, COLOR_RED)								; .cBordersAndBackground
+	db	COLOR_ATTRIBUTE(COLOR_GRAY, COLOR_BLACK)								; .cShadow
+	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_RED)							; .cTitle
+	db	COLOR_ATTRIBUTE(COLOR_WHITE, COLOR_RED)									; .cItem
+	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_RED)							; .cHighlightedItem
+	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_RED) | FLG_COLOR_BLINK		; .cHurryTimeout
+	db	COLOR_ATTRIBUTE(COLOR_BRIGHT_WHITE, COLOR_RED)							; .cNormalTimeout
+	; Liquid Crystal Display
+	db	COLOR_ATTRIBUTE(COLOR_BLUE, COLOR_GREEN)								; .cBordersAndBackground
+	db	COLOR_ATTRIBUTE(COLOR_GRAY, COLOR_BLACK)								; .cShadow
+	db	COLOR_ATTRIBUTE(COLOR_BLUE, COLOR_GREEN)								; .cTitle
+	db	COLOR_ATTRIBUTE(COLOR_BLUE, COLOR_GREEN)								; .cItem
+	db	COLOR_ATTRIBUTE(COLOR_GREEN, COLOR_BLUE)								; .cHighlightedItem
+	db	COLOR_ATTRIBUTE(COLOR_GREEN, COLOR_BLUE) | FLG_COLOR_BLINK				; .cHurryTimeout
+	db	COLOR_ATTRIBUTE(COLOR_GREEN, COLOR_BLUE)								; .cNormalTimeout
 EndOfColorThemeTable:
 CountOfThemes	equ		(EndOfColorThemeTable-ColorThemeTable) / ATTRIBUTE_CHARS_size
 
@@ -258,6 +303,7 @@ BootMenuSettingsMenu_EnterMenuOrModifyItemVisibility:
 	call	.EnableOrDisableDefaultBootDrive
 	call	.EnableOrDisableColorThemeSelection
 	call	.EnableOrDisableBootMenuSelectionTimeout
+	call	.EnableOrDisableRemoveOtherHardDrives
 	mov		si, g_MenupageForBootMenuSettingsMenu
 	jmp		Menupage_ChangeToNewMenupageInDSSI
 
@@ -308,9 +354,25 @@ ALIGN JUMP_ALIGN
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 .EnableOrDisableColorThemeSelection:
-	mov		bx, g_MenuitemBootMnuStngsColorTheme
+	push	ax
 	test	ax, FLG_ROMVARS_MODULE_BOOT_MENU
-	jmp		SHORT .DisableMenuitemFromCSBXifZFset
+	jz		SHORT .NoModuleBootMenu
+	mov		bx, ROMVARS.wDisplayMode
+	call	Buffers_GetRomvarsValueToAXfromOffsetInBX
+	cmp		al, 4
+	je		SHORT .ColorMode			; Actually default video mode which might be a color mode
+	cmp		al, 7
+	je		SHORT .NotColorMode
+	test	al, 1
+	jnz		SHORT .ColorMode
+.NoModuleBootMenu:
+.NotColorMode:
+	stc
+.ColorMode:
+	pop		ax
+	mov		bx, g_MenuitemBootMnuStngsColorTheme
+	jnc		SHORT .EnableMenuitemFromCSBX
+	jmp		SHORT .DisableMenuitemFromCSBX
 
 
 ;--------------------------------------------------------------------
@@ -349,6 +411,24 @@ ALIGN JUMP_ALIGN
 ALIGN JUMP_ALIGN
 .DisableMenuitemFromCSBX:
 	jmp		DisableMenuitemFromCSBX
+
+
+;--------------------------------------------------------------------
+; .EnableOrDisableRemoveOtherHardDrives
+;	Parameters:
+;		AX:		ROMVARS.wFlags
+;		SS:BP:	Menu handle
+;	Returns:
+;		Nothing
+;	Corrupts registers:
+;		BX
+;--------------------------------------------------------------------
+ALIGN JUMP_ALIGN
+.EnableOrDisableRemoveOtherHardDrives:
+	test	al, FLG_ROMVARS_MODULE_MFM_COMPATIBILITY
+	mov		bx, g_MenuitemBootMnuStngsClearBdaDriveCount
+	jz		SHORT .EnableMenuitemFromCSBX
+	jmp		SHORT .DisableMenuitemFromCSBX
 
 
 ;--------------------------------------------------------------------
@@ -397,7 +477,7 @@ ReadColorTheme:
 	mov		ax, cx						; Return the color theme index in AX; zero (default theme) if a theme was not found
 	jne		SHORT .SkipCopy
 
-	; Copy the color theme fron the loaded BIOS overwriting XTIDECFG's own theme
+	; Copy the color theme from the loaded BIOS overwriting XTIDECFG's own theme
 	inc		si
 	mov		di, ColorTheme				; ES:DI now points to ColorTheme in XTIDECFG
 
