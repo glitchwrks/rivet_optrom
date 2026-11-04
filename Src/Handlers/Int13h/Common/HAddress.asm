@@ -64,7 +64,7 @@ HAddress_ExtractLCHSFromBiosParams:
 	sub		cl, bl				; Remove from cylinder number high
 	eROL_IM	cl, 2				; High bits to beginning
 	mov		bh, dh				; Copy Head number
-	xchg	cl, ch				; Cylinder number now in CX
+	xchg	ch, cl				; Cylinder number now in CX
 	ret
 
 

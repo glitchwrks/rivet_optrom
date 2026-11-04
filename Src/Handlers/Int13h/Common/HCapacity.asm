@@ -40,7 +40,7 @@ HCapacity_ConvertAH08hReturnValuesToSectorCount:
 	call	HAddress_ExtractLCHSFromBiosParams
 	xor		ax, ax			; Zero AX
 	inc		cx				; Max cylinder number to cylinder count
-	xchg	al, bh			; AX=Max head number, BX=Sectors per track
+	xchg	bh, al			; AX=Max head number, BX=Sectors per track
 	inc		ax				; AX=Head count
 	mul		bx				; AX=Head count * Sectors per track
 	mul		cx				; DX:AX = Total sector count

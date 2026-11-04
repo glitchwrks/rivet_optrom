@@ -109,7 +109,7 @@ ALIGN JUMP_ALIGN
 HCommand_OutputSectorCountAndCommand:
 	out		dx, al						; Output sector count
 	add		dx, BYTE REGW_IDE_CMD-REG_IDE_CNT
-	xchg	al, ah						; AL=Command, AH=Sector count
+	xchg	ah, al						; AL=Command, AH=Sector count
 	out		dx, al
 	mov		al, ah						; Restore sector count to AL
 	jmp		SoftDelay_BeforePollingStatusRegister

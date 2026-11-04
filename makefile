@@ -13,6 +13,7 @@
 # at        AT build (286+)                                                   #
 # xtplus    XT+ build (80186/80188, V20/V30)                                  #
 # xt        XT build (8086/8088)                                              #
+# check     Builds, then checks images against Tools/baseline.sha256          #
 # clean     Removes Build/                                                    #
 #                                                                             #
 # Override the assembler or Python interpreter on the command line, e.g.:     #
@@ -110,7 +111,7 @@ ASFLAGS = -f bin $(DEFS) $(IHEADERS) -Worphan-labels -O9
 # Build process. Actual work is done here. #
 ############################################
 
-.PHONY: all build at xtplus xt clean
+.PHONY: all build at xtplus xt check clean
 
 all: clean build
 	@echo All built!
@@ -135,6 +136,9 @@ $(TARGET)_xtp.bin: $(DEPS) Tools/checksum.py | $(BUILD_DIR)
 $(TARGET)_xt.bin: $(DEPS) Tools/checksum.py | $(BUILD_DIR)
 	$(AS) $(ASFLAGS) $(DEFS_XT) -o $@ $(SRC_ASM)
 	$(CHECKSUM) $@
+
+check: build
+	$(PYTHON) Tools/check_baseline.py -v Tools/baseline.sha256
 
 clean:
 	rm -rf $(BUILD_DIR)

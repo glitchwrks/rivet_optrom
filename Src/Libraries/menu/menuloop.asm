@@ -136,7 +136,7 @@ MenuLoop_ProcessKey:
 	pop		es					; Copy CS to ES
 	mov		cx, CNT_MENU_KEYS	; Load number of menu keys
 	mov		di, .rgbKeyToIdx	; Load offset to translation table
-	xchg	al, ah				; Scan code to AL
+	xchg	ah, al				; Scan code to AL
 	cld							; SCASB to increment DI
 	repne scasb					; Compare [ES:DI] to AL until match
 	jne		.Dispatch			; If not menukey, jump to dispatch
@@ -150,7 +150,7 @@ MenuLoop_ProcessKey:
 	; Dispatch key event
 ALIGN JUMP_ALIGN
 .Dispatch:
-	xchg	al, ah				; Restore AX
+	xchg	ah, al				; Restore AX
 	mov		bx, EVNT_MNU_KEY
 	mov		dx, ax				; Copy keys to DX
 	call	MenuLoop_SendEvent

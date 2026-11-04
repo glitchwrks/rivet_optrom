@@ -102,14 +102,14 @@ MenuDraw_MultilineStr:
 	xor		si, si
 ALIGN JUMP_ALIGN
 .LineLoop:
-	xchg	cx, si							; Idx to CX, count to SI
+	xchg	si, cx							; Idx to CX, count to SI
 	push	cx
 	call	MenuMsg_WriteLine				; Write line
 	pop		cx
 	jc		.Return							;  Return if last token written
 	call	MenuDraw_NewlineStr				; Cursor to next line
 	inc		cx								; Increment line index
-	xchg	cx, si							; Count to CX, idx to SI
+	xchg	si, cx							; Count to CX, idx to SI
 	loop	.LineLoop						; Loop while lines left
 ALIGN JUMP_ALIGN
 .Return:

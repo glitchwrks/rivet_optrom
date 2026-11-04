@@ -173,7 +173,7 @@ String_IsBaseChar:
 	call	String_IsAlpha		; Is alphabetic letter?
 	jnc		.RetFalse			;  If not, return FALSE
 	call	String_ToLower		; Convert to lower case
-	xchg	al, ah				; Converted char to AH
+	xchg	ah, al				; Converted char to AH
 	sub		ah, 'a'-10			; From char to integer: a=10, b=11...
 	cmp		ah, cl				; Belongs to base?
 	jae		.RetFalse			; If not, return FALSE
@@ -306,7 +306,7 @@ String_BuffToUInt:
 	push	si					; Store SI
 	push	di					; Store DI
 	push	bx					; Store BX
-	xchg	si, di				; Offset to SI, lenght to DI
+	xchg	di, si				; Offset to SI, lenght to DI
 	push	es
 	pop		ds
 

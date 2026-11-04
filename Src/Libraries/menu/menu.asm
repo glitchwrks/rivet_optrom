@@ -167,7 +167,7 @@ Menu_Enter:
 	call	MenuCrsr_GetCenter	; Get centered coordinates to DX
 	pop		ax					; Restore timeout to AX
 	xor		bx, bx				; Zero BX
-	xchg	bl, ch				; Menu flags to BL, Item count to CX
+	xchg	ch, bl				; Menu flags to BL, Item count to CX
 	call	Menu_Init
 
 	; Destroy stack frame

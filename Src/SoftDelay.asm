@@ -109,7 +109,7 @@ SoftDelay_us:
 	push	ax
 
 	xor		dx, dx						; Zero DX
-	xchg	cx, dx						; Microsecs now in CX:DX
+	xchg	dx, cx						; Microsecs now in CX:DX
 	mov		ah, 86h						; Event Wait
 	int		INTV_SYSTEM_SERVICES
 

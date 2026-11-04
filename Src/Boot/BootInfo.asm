@@ -135,7 +135,7 @@ BootInfo_StoreDriveName:
 ALIGN JUMP_ALIGN
 BootInfo_StoreAtaString:
 	lodsw							; Load WORD from DS:SI to AX
-	xchg	al, ah					; Change byte order
+	xchg	ah, al					; Change byte order
 	call	BootInfo_StoreAtaChar
 	jc		SHORT .Return			; Return if invalid character
 	mov		al, ah					; Write next char

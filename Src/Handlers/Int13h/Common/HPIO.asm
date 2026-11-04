@@ -69,7 +69,7 @@ HPIO_ReadBlock:
 	pop		si
 
 	; Start to read data
-	xchg	bx, di							; DS:BX points DPT, ES:DI points buffer
+	xchg	di, bx							; DS:BX points DPT, ES:DI points buffer
 	mov		dx, [RAMVARS.wIdeBase]			; Load IDE Base Port address
 	call	HPIO_ReadFromDrive
 

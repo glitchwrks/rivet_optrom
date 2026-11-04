@@ -1,0 +1,7 @@
+# SHA-256 of build outputs that must match known-good images.
+#
+# Build/ide_xt.bin: the XT build is byte-identical to the official
+# XTIDE Universal BIOS v1.1.5 release image with factory defaults. Until
+# Rivet deliberately changes code, any difference here is a regression in
+# the build, not an intended change.
+ec5cdc52ceb0535b788c1da9f4ca0c19d8517e5111fbf4f68b35a52b956bbae6  Build/ide_xt.bin

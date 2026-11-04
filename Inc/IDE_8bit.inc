@@ -120,7 +120,7 @@ ALIGN JUMP_ALIGN
 %else	; If 8088/8086
 	lodsw						; Load word from [DS:SI]
 	xor		dx, bx				; IDE Data Reg to XTIDE Data High Reg
-	xchg	al, ah				; => AL=high byte, AH=low byte
+	xchg	ah, al				; => AL=high byte, AH=low byte
 	out		dx, al				; Output high byte
 	xor		dx, bx				; XTIDE Data High Reg to IDE Data Reg
 	mov		al, ah				; Copy low byte to AL

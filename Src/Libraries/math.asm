@@ -148,7 +148,7 @@ Math_DivDWbyW:
 	div		cx
 	xchg	ax, bx
 	div		cx
-	xchg	dx, bx
+	xchg	bx, dx
 	ret
 %endif
 

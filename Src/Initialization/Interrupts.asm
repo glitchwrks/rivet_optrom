@@ -83,7 +83,7 @@ ALIGN JUMP_ALIGN
 Interrupts_InitializeInt19h:
 	eMOVZX	bx, [cs:ROMVARS.bBootLdrType]	; Load boot loader type
 	mov		si, INTV_BOOTSTRAP				; 19h
-	xchg	bx, si							; SI=Loader type, BX=19h
+	xchg	si, bx							; SI=Loader type, BX=19h
 	jmp		[cs:si+.rgwSetupBootLoader]		; Jump to install selected loader
 ALIGN WORD_ALIGN
 .rgwSetupBootLoader:
