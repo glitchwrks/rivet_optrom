@@ -3,6 +3,7 @@
 ; Created date	:	26.3.2010
 ; Last update	:	3.8.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Functions for printing boot menu strings.
 
 ; Section containing code
@@ -69,10 +70,7 @@ BootMenuPrint_GetCoordinatesForBottomStrings:
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 BootMenuPrint_SetCursorPosition:
-	push	bx
-	call	MenuCrsr_SetCursor
-	pop		bx
-	ret
+	jmp		BootMenuUI_SetCursorToDX
 
 
 ;--------------------------------------------------------------------
@@ -161,7 +159,18 @@ BootMenuPrint_HardDiskHotkeyString:
 ALIGN JUMP_ALIGN
 BootMenuPrint_ClearScreen:
 	push	cx
-	call	MenuDraw_ClrScr
+	push	bp
+	xor		dx, dx						; Cursor to (0,0)
+	call	BootMenuUI_SetCursorToDX
+	mov		ah, 0Fh						; Get Current Video Mode
+	int		10h
+	mov		al, BMUI_SCREEN_ROWS		; Load row count
+	mul		ah							; AX=Column count * row count
+	mov		cx, ax						; Copy char count to CX
+	mov		bx, ATTR_MDA_NORMAL			; Page zero, normal attribute
+	mov		ax, 0920h					; Write Char and attr, space char
+	int		10h
+	pop		bp
 	pop		cx
 	ret
 
@@ -423,13 +432,13 @@ ALIGN WORD_ALIGN
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 BootMenuPrint_ClearThreeInfoLines:
-	call	MenuDraw_NewlineStrClrLn
+	call	BootMenuUI_EndContentLine
 ALIGN JUMP_ALIGN
 BootMenuPrint_ClearTwoInfoLines:
-	call	MenuDraw_NewlineStrClrLn
+	call	BootMenuUI_EndContentLine
 ALIGN JUMP_ALIGN
 BootMenuPrint_ClearOneInfoLine:
-	call	MenuDraw_NewlineStrClrLn
+	call	BootMenuUI_EndContentLine
 	mov		ax, 1
 	ret
 

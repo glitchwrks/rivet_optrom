@@ -10,8 +10,8 @@
 
 ; String library function to include
 ;%define USE_MATH_MULDWBYW		; Math_MulDWbyW
-%define USE_MATH_DIVDWBYW		; Math_DivDWbyW
-%define USE_MATH_REMTOTENTHS	; Math_RemToTenths
+;%define USE_MATH_DIVDWBYW		; Math_DivDWbyW
+;%define USE_MATH_REMTOTENTHS	; Math_RemToTenths
 
 
 ;-------------- Private global variables -------------

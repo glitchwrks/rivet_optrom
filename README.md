@@ -18,6 +18,9 @@ Changes from v1.1.5:
 
 * v0.1.0: new identity; builds with NASM on Unix-like systems
 * v0.2.0: support for XT-IDE boards jumpered for HI-SPEED mode (see below)
+* v0.3.0: new boot menu code. It looks and behaves the same, but only
+  redraws what changes, which makes it much faster on 4.77 MHz machines
+  (see below)
 
 **Configuration:** the XTIDE Universal BIOS configurator (XTIDECFG) only
 recognizes ROMs with its own signature, so it can't configure or flash
@@ -31,12 +34,15 @@ Requirements:
 * GNU make
 * [NASM](https://www.nasm.us/)
 * Python 3, for the checksum and baseline-check tools
+* Optional: the Python [unicorn](https://www.unicorn-engine.org/) package,
+  for `make emutest`
 
 Tested with NASM 2.15.05 and 2.16.01.
 
 ```
 make build      # build all images into Build/
 make check      # build, then check images against the known-good baseline
+make emutest    # build, then run behaviour tests on an emulated XT
 make clean      # remove Build/
 ```
 
@@ -91,6 +97,45 @@ Register-to-register `XCHG` instructions have two valid encodings, and
 NASM and YASM pick different ones. Some `XCHG` operands in the source are
 in the order that makes NASM match the original YASM-built release, so
 please don't "tidy" them.
+
+### Emulator tests
+
+`Tools/xtemu.py` runs a ROM image on an emulated PC/XT. The CPU is
+emulated with Unicorn, the BIOS services are stubbed in Python, and there
+is a simple model of an XT-IDE board with ATA drives (NORMAL or HI-SPEED
+layout). It captures the 80x25 screen and counts every `INT 10h` call, so
+two builds can be compared screen for screen and by how much BIOS output
+they do. For example:
+
+```
+python3 Tools/xtemu.py Build/rivet_xt.bin --drives 2 --keys 40:down,60:enter
+python3 Tools/xtemu.py Build/rivet_xt_hs.bin --hispeed
+```
+
+`make emutest` (`Tools/emu_test.py`) uses it to check that each image boots
+through the menu, that navigation, hotkeys and the timeout work, that a
+mismatched NORMAL/HI-SPEED image finds no drives, and that the idle menu
+isn't redrawing constantly. CI runs it on every push.
+
+This is a test harness, not an accurate emulator: it doesn't model timing,
+so it can't measure speed. Real hardware is still the release test.
+
+## Boot menu
+
+The boot menu keeps the v1.1.5 look, keys and behaviour. Since v0.3.0 it is
+drawn by purpose-built code (`Src/Boot/BootMenuUI.asm`) instead of the
+generic v1.1.5 menu library, and it only redraws what changes:
+
+* the timeout digits only when the displayed seconds change (v1.1.5
+  redrew the whole bottom border 18 times a second),
+* on a selection change, only the two arrows, the drive numbers and the
+  info box (v1.1.5 redrew every menu item),
+* the rest of the menu only when it scrolls.
+
+In emulator tests, the menu now makes about 3 to 4 BIOS video calls per
+second while waiting (v0.2.0 made about 780), and about 130 per arrow key
+(v0.2.0 made about 300). All output still goes through the video BIOS
+(`INT 10h` set-cursor and teletype), so serial-console systems keep working.
 
 ## Contributing
 

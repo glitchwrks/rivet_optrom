@@ -3,6 +3,7 @@
 ; Created date	:	4.12.2007
 ; Last update	:	9.4.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Strings and equates for BIOS messages.
 
 ; Section containing code
@@ -29,6 +30,9 @@ g_sz18hCallback:db	"Boot menu callback via INT 18h",STOP
 g_szFDD:		db	"FDD",STOP
 g_szHDD:		db	"HDD",STOP
 g_szBottomScrn:	db	"%c to %c boots from %s with %s mappings",CR,LF,STOP
+
+; Boot Menu bottom border string
+g_szTimeout:	db	"Selection Timeout ",STOP
 
 ; Boot Menu title strings
 g_szTitleLn3:	db	"Copyright 2009-2010 by Tomi Tilli",STOP

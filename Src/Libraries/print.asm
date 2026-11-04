@@ -3,6 +3,7 @@
 ; Created date	:	6.10.2009
 ; Last update	:	31.12.2009
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	ASM library to for character and string
 ;					printing related functions.
 
@@ -12,7 +13,7 @@
 %define USE_PRINT_FORMAT			; Print_Format
 %define USE_PRINT_NEWLINE			; Print_Newline
 ;%define USE_PRINT_CHARBUFFER		; Print_CharBuffer
-%define USE_PRINT_REPEAT			; Print_Repeat
+;%define USE_PRINT_REPEAT			; Print_Repeat
 ;%define USE_PRINT_BOOL				; Print_Bool
 ;%define USE_PRINT_INTSW			; Print_IntSW
 %define USE_PRINT_INTUW				; Print_IntUW
