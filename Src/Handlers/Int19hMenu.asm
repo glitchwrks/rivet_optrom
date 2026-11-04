@@ -3,6 +3,7 @@
 ; Created date	:	25.3.2010
 ; Last update	:	12.4.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Int 19h BIOS functions for Boot Menu.
 
 ; Section containing code
@@ -22,6 +23,7 @@ SECTION .text
 ALIGN JUMP_ALIGN
 Int19hMenu_BootLoader:
 	LOAD_BDA_SEGMENT_TO	ds, ax
+	mov		[BOOTVARS.bMenuFlags], al	; AX=0 from LOAD_BDA_SEGMENT_TO
 	call	BootVars_StorePostStackPointer
 	call	BootVars_StoreSystemInt18hAndInstallOurs
 

@@ -99,6 +99,16 @@ def test_image(path, hispeed):
                  max_ticks=200)
     check(f'{name} timeout boots', res == ('boot', 0x80), res)
 
+    # Any key stops the countdown for good, also after Esc redisplays the
+    # menu (same 2 s delay; the menu is up by about tick 15)
+    for keys in ([(20, 'down')], [(20, 'down'), (25, 'esc')]):
+        m, res = run(patched(path, ROMVARS_BOOT_DELAY, 2), hispeed,
+                     keys=keys, max_ticks=80)
+        what = '+'.join(k for _, k in keys)
+        check(f'{name} {what} stops timeout', res == ('tick-budget', None)
+              and 'Selection Timeout' not in m.screen.text(),
+              (res, m.screen.text()))
+
     # Cursor shape set by the video BIOS survives the menu (MDA uses
     # scan lines 0Bh-0Ch; restoring a fixed CGA 0607h centres it)
     for shape in (0x0B0C, 0x0607):
@@ -135,6 +145,9 @@ def test_nomenu_image(path, hispeed):
     check(f'{name} no boot sector', res == ('int18', None) and
           "Can't boot hard disk 80h: no boot sector" in m.screen.text(),
           (res, m.screen.text()))
+    # ...and left on screen for about 2 s (36 ticks) before INT 18h
+    shown = m.ticks - m.int10_log[-1][0] if m.int10_log else 0
+    check(f'{name} failure delay', 34 <= shown <= 40, shown)
 
     # A bootable disk in A: is booted first
     m, res = run(path, hispeed, keys=[], max_ticks=100, floppy_bootable=True)

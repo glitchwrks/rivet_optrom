@@ -9,6 +9,7 @@
 SECTION .text
 
 B_READ_RETRY_TIMES	EQU	3	; Number of times to retry
+B_BOOT_FAILURE_DELAY	EQU	36	; Timer ticks (about 2 s) to show boot failure
 
 
 ;--------------------------------------------------------------------
@@ -214,12 +215,22 @@ Int19h_ClearSegmentsForBoot:
 ;
 ; Int19h_BootFailure
 ;	Parameters:
-;		Nothing
+;		DS:		RAMVARS segment (no Boot Menu builds)
 ;	Returns:
 ;		Should never return (but might)
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 Int19h_BootFailure:
+%ifndef MODULE_BOOT_MENU
+	; Without the Boot Menu, a hard disk boot failure has just been
+	; printed. Give it time to be read: on IBM machines INT 18h starts
+	; ROM BASIC, which clears the screen.
+	mov		cl, B_BOOT_FAILURE_DELAY
+	call	SoftDelay_InitTimeout
+.WaitForDelay:
+	call	SoftDelay_UpdTimeout
+	jnc		SHORT .WaitForDelay
+%endif
 	call	Int19h_ClearSegmentsForBoot
 	int		INTV_BOOT_FAILURE
 	ret

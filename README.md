@@ -22,7 +22,8 @@ Changes from v1.1.5:
   redraws what changes, which makes it much faster on 4.77 MHz machines
   (see below)
 * v0.4.0: images can be built without the boot menu, booting in BIOS
-  order instead (see below)
+  order instead; in the boot menu, any keypress stops the selection
+  timeout (see below)
 
 **Configuration:** the XTIDE Universal BIOS configurator (XTIDECFG) only
 recognizes ROMs with its own signature, so it can't configure or flash
@@ -130,9 +131,17 @@ so it can't measure speed. Real hardware is still the release test.
 
 ## Boot menu
 
-The boot menu keeps the v1.1.5 look, keys and behaviour. Since v0.3.0 it is
-drawn by purpose-built code (`Src/Boot/BootMenuUI.asm`) instead of the
-generic v1.1.5 menu library, and it only redraws what changes:
+The boot menu keeps the v1.1.5 look and keys. One behaviour change since
+v0.4.0: **any keypress stops the selection timeout for good**, and the
+countdown disappears from the bottom border. It stays stopped if the menu
+is shown again during the same boot (after Esc, or after a failed boot).
+v1.1.5 only restarted the countdown on a selection change, so anyone who
+needed time, for example to fetch a boot floppy, had to keep pressing
+arrow keys.
+
+Since v0.3.0 the menu is drawn by purpose-built code
+(`Src/Boot/BootMenuUI.asm`) instead of the generic v1.1.5 menu library,
+and it only redraws what changes:
 
 * the timeout digits only when the displayed seconds change (v1.1.5
   redrew the whole bottom border 18 times a second),
@@ -153,8 +162,10 @@ system BIOS does: from A: if it holds a bootable disk, otherwise from the
 first hard disk. There is no prompt and no wait, and nothing is printed
 after drive detection unless the hard disk can't be booted. Then one line
 gives the reason, for example `Can't boot hard disk 80h: error 20h` (the
-INT 13h error code) or `Can't boot hard disk 80h: no boot sector`, before
-the system's INT 18h handler takes over. An empty or unbootable A: is
+INT 13h error code) or `Can't boot hard disk 80h: no boot sector`. It
+stays on screen for about 2 seconds before the system's INT 18h handler
+takes over, since on IBM machines that starts ROM BASIC, which clears the
+screen. An empty or unbootable A: is
 normal and isn't reported.
 
 Settings that only the boot menu uses (default boot drive, menu height,
