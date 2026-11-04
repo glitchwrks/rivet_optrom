@@ -3,6 +3,7 @@
 ; Created date	:	15.3.2010
 ; Last update	:	24.8.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Functions for swapping drive letters.
 
 ; Section containing code
@@ -185,6 +186,7 @@ DriveXlate_Reset:
 	ret
 
 
+%ifdef MODULE_BOOT_MENU	; Only needed by the Boot Menu
 ;--------------------------------------------------------------------
 ; Stores drive to be swapped.
 ;
@@ -236,6 +238,7 @@ ALIGN JUMP_ALIGN
 DriveXlate_SetHardDiskToSwap:
 	mov		[RAMVARS.xlateVars+XLATEVARS.bHDSwap], dl
 	ret
+%endif ; MODULE_BOOT_MENU
 
 
 ;--------------------------------------------------------------------

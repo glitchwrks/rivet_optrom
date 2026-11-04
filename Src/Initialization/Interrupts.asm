@@ -88,9 +88,15 @@ Interrupts_InitializeInt19h:
 	jmp		[cs:si+.rgwSetupBootLoader]		; Jump to install selected loader
 ALIGN WORD_ALIGN
 .rgwSetupBootLoader:
+%ifdef MODULE_BOOT_MENU
 	dw		.SetupBootMenuLoader		; BOOTLOADER_TYPE_MENU
 	dw		.SetupSimpleLoader			; BOOTLOADER_TYPE_SIMPLE
 	dw		.SetupBootMenuLoader		; reserved
+%else								; No Boot Menu in this build:
+	dw		.SetupSimpleLoader			; BOOTLOADER_TYPE_MENU
+	dw		.SetupSimpleLoader			; BOOTLOADER_TYPE_SIMPLE
+	dw		.SetupSimpleLoader			; reserved
+%endif
 	dw		.NoBootLoader				; BOOTLOADER_TYPE_NONE
 
 ALIGN JUMP_ALIGN
@@ -102,10 +108,12 @@ ALIGN JUMP_ALIGN
 .SetupSimpleLoader:
 	mov		si, Int19h_SimpleBootLoader
 	jmp		Interrupts_InstallHandlerToVectorInBXFromCSSI
+%ifdef MODULE_BOOT_MENU
 ALIGN JUMP_ALIGN
 .SetupBootMenuLoader:
 	mov		si, Int19hMenu_BootLoader
 	jmp		Interrupts_InstallHandlerToVectorInBXFromCSSI
+%endif
 
 
 ;--------------------------------------------------------------------

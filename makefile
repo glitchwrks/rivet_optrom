@@ -14,6 +14,8 @@
 # xtplus    XT+ build (80186/80188, V20/V30)                                  #
 # xt        XT build (8086/8088)                                              #
 # hispeed   All three builds defaulting to XTIDE HI-SPEED mode (*_hs.bin)     #
+# nomenu    All builds without the Boot Menu, booting in BIOS order           #
+#           (*_nomenu.bin)                                                    #
 # check     Builds, then checks images against Tools/baseline.sha256          #
 # emutest   Builds, then runs behaviour tests on an emulated XT (needs        #
 #           Python unicorn package)                                           #
@@ -62,6 +64,7 @@ DEFINES_XT =
 DEFINES_XTPLUS = USE_186
 DEFINES_AT = USE_186 USE_286 USE_AT
 DEFINES_HISPEED = DEFAULT_HISPEED
+DEFINES_NOMENU = NO_BOOT_MENU
 
 
 ###################
@@ -74,6 +77,16 @@ DEFS_XT = $(DEFINES_XT:%=-D%)
 DEFS_XTPLUS = $(DEFINES_XTPLUS:%=-D%)
 DEFS_AT = $(DEFINES_AT:%=-D%)
 DEFS_HISPEED = $(DEFINES_HISPEED:%=-D%)
+DEFS_NOMENU = $(DEFINES_NOMENU:%=-D%)
+
+# Image names are $(PROG)_<cpu>[_hs][_nomenu].bin. These map the parts of
+# the name to defines.
+DEFS_CPU_at = $(DEFS_AT)
+DEFS_CPU_xtp = $(DEFS_XTPLUS)
+DEFS_CPU_xt = $(DEFS_XT)
+image_defs = $(DEFS_CPU_$(word 1,$(subst _, ,$(1)))) \
+	$(if $(filter hs,$(subst _, ,$(1))),$(DEFS_HISPEED)) \
+	$(if $(filter nomenu,$(subst _, ,$(1))),$(DEFS_NOMENU))
 
 # Add -I in front of all header directories
 IHEADERS = $(HEADERS:%=-I%)
@@ -115,43 +128,28 @@ ASFLAGS = -f bin $(DEFS) $(IHEADERS) -Worphan-labels -O9
 # Build process. Actual work is done here. #
 ############################################
 
-.PHONY: all build at xtplus xt hispeed check emutest clean
+.PHONY: all build at xtplus xt hispeed nomenu check emutest clean
+
+CPUS = at xtp xt
+VARIANTS = $(foreach c,$(CPUS),$(c) $(c)_hs)
+IMAGES = $(foreach v,$(VARIANTS),$(TARGET)_$(v).bin $(TARGET)_$(v)_nomenu.bin)
 
 all: clean build
 	@echo All built!
 
-build: at xtplus xt hispeed
+build: $(IMAGES)
 
 at: $(TARGET)_at.bin
 xtplus: $(TARGET)_xtp.bin
 xt: $(TARGET)_xt.bin
-hispeed: $(TARGET)_at_hs.bin $(TARGET)_xtp_hs.bin $(TARGET)_xt_hs.bin
+hispeed: $(foreach c,$(CPUS),$(TARGET)_$(c)_hs.bin)
+nomenu: $(foreach v,$(VARIANTS),$(TARGET)_$(v)_nomenu.bin)
 
 $(BUILD_DIR):
 	mkdir -p $@
 
-$(TARGET)_at.bin: $(DEPS) Tools/checksum.py | $(BUILD_DIR)
-	$(AS) $(ASFLAGS) $(DEFS_AT) -o $@ $(SRC_ASM)
-	$(CHECKSUM) $@
-
-$(TARGET)_xtp.bin: $(DEPS) Tools/checksum.py | $(BUILD_DIR)
-	$(AS) $(ASFLAGS) $(DEFS_XTPLUS) -o $@ $(SRC_ASM)
-	$(CHECKSUM) $@
-
-$(TARGET)_xt.bin: $(DEPS) Tools/checksum.py | $(BUILD_DIR)
-	$(AS) $(ASFLAGS) $(DEFS_XT) -o $@ $(SRC_ASM)
-	$(CHECKSUM) $@
-
-$(TARGET)_at_hs.bin: $(DEPS) Tools/checksum.py | $(BUILD_DIR)
-	$(AS) $(ASFLAGS) $(DEFS_AT) $(DEFS_HISPEED) -o $@ $(SRC_ASM)
-	$(CHECKSUM) $@
-
-$(TARGET)_xtp_hs.bin: $(DEPS) Tools/checksum.py | $(BUILD_DIR)
-	$(AS) $(ASFLAGS) $(DEFS_XTPLUS) $(DEFS_HISPEED) -o $@ $(SRC_ASM)
-	$(CHECKSUM) $@
-
-$(TARGET)_xt_hs.bin: $(DEPS) Tools/checksum.py | $(BUILD_DIR)
-	$(AS) $(ASFLAGS) $(DEFS_XT) $(DEFS_HISPEED) -o $@ $(SRC_ASM)
+$(TARGET)_%.bin: $(DEPS) Tools/checksum.py | $(BUILD_DIR)
+	$(AS) $(ASFLAGS) $(call image_defs,$*) -o $@ $(SRC_ASM)
 	$(CHECKSUM) $@
 
 check: build

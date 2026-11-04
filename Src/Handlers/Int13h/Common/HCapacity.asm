@@ -23,11 +23,13 @@ SECTION .text
 ;	Corrupts registers:
 ;		CX
 ;--------------------------------------------------------------------
+%ifdef MODULE_BOOT_MENU	; Only needed by the Boot Menu
 ALIGN JUMP_ALIGN
 HCapacity_GetSectorCountFromForeignAH08h:
 	mov		ah, 08h			; Get Drive Parameters
 	call	Int13h_CallPreviousInt13hHandler
 	jmp		SHORT HCapacity_ConvertAH08hReturnValuesToSectorCount
+%endif ; MODULE_BOOT_MENU
 
 ALIGN JUMP_ALIGN
 HCapacity_GetSectorCountFromOurAH08h:
@@ -49,6 +51,7 @@ HCapacity_ConvertAH08hReturnValuesToSectorCount:
 	ret
 
 
+%ifdef MODULE_BOOT_MENU	; Only needed by the Boot Menu
 ;--------------------------------------------------------------------
 ; Converts sector count to hard disk size.
 ;
@@ -166,3 +169,4 @@ HCapacity_ConvertSizeRemainderToTenths:
 	pop		ax
 	pop		dx
 	ret
+%endif ; MODULE_BOOT_MENU

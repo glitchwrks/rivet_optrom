@@ -16,7 +16,9 @@
 ;%define USE_PRINT_REPEAT			; Print_Repeat
 ;%define USE_PRINT_BOOL				; Print_Bool
 ;%define USE_PRINT_INTSW			; Print_IntSW
-%define USE_PRINT_INTUW				; Print_IntUW
+%ifdef MODULE_BOOT_MENU
+%define USE_PRINT_INTUW				; Print_IntUW (%u is only used by the Boot Menu)
+%endif
 ;%define USE_PRINT_INTUDW			; Print_IntUDW
 %define USE_PRINT_INTHEXB			; Print_IntHexB
 %define USE_PRINT_INTHEXW			; Print_IntHexW

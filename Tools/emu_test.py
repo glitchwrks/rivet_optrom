@@ -34,6 +34,11 @@ def check(name, cond, detail=''):
 
 
 ROMVARS_BOOT_DELAY = 0x55     # Boot Menu selection delay (seconds)
+ROMVARS_BOOT_LDR_TYPE = 0x56  # Boot loader type
+ROMVARS_BUILD_FLAGS = 0x59    # wBuildFlags (read only build description)
+FLG_BUILD_NOBOOTMENU = 0x01
+BOOTLOADER_TYPE_MENU = 0
+BOOTLOADER_TYPE_NONE = 6
 
 
 def patched(rom, offset, value):
@@ -45,17 +50,24 @@ def patched(rom, offset, value):
 
 
 def run(rom, hispeed=False, drives=1, floppies=1, keys=(), max_ticks=300,
-        cursor_shape=None):
+        cursor_shape=None, floppy_bootable=False):
     d = xtemu.make_drives(drives) + [None] * (2 - drives)
     image = rom if isinstance(rom, bytes) else open(rom, 'rb').read()
-    m = xtemu.Machine(image, d, hispeed, floppies, list(keys), max_ticks)
+    m = xtemu.Machine(image, d, hispeed, floppies, list(keys), max_ticks,
+                      floppy_bootable=floppy_bootable)
     if cursor_shape is not None:
         m.screen.cursor_shape = cursor_shape
     return m, m.boot()
 
 
+def build_flags(path):
+    image = open(path, 'rb').read()
+    return image[ROMVARS_BUILD_FLAGS] | image[ROMVARS_BUILD_FLAGS + 1] << 8
+
+
 def test_image(path, hispeed):
     name = os.path.basename(path)
+    check(f'{name} build flags', build_flags(path) == 0, build_flags(path))
 
     # Boots the default (first hard disk) with Enter
     m, res = run(path, hispeed, keys=[(40, 'enter')])
@@ -100,15 +112,41 @@ def test_image(path, hispeed):
           m.screen.text())
 
 
+def test_nomenu_image(path, hispeed):
+    """Images built without the Boot Menu boot in BIOS order."""
+    name = os.path.basename(path)
+    check(f'{name} build flags', build_flags(path) == FLG_BUILD_NOBOOTMENU,
+          build_flags(path))
+
+    # No disk in A:, so it boots C: without waiting for anything, and only
+    # teletype output is used (no menu drawing)
+    m, res = run(path, hispeed, keys=[], max_ticks=100)
+    check(f'{name} boots 80h', res == ('boot', 0x80), res)
+    check(f'{name} teletype only', set(m.int10) <= {0x0E}, dict(m.int10))
+    check(f'{name} no menu', 'Selection Timeout' not in m.screen.text(),
+          m.screen.text())
+
+    # A bootable disk in A: is booted first
+    m, res = run(path, hispeed, keys=[], max_ticks=100, floppy_bootable=True)
+    check(f'{name} boots A:', res == ('boot', 0x00), res)
+
+    # Boot loader types the image can't provide fall back to the simple one
+    for ldr in (BOOTLOADER_TYPE_MENU, BOOTLOADER_TYPE_NONE):
+        m, res = run(patched(path, ROMVARS_BOOT_LDR_TYPE, ldr), hispeed,
+                     keys=[], max_ticks=100)
+        check(f'{name} loader type {ldr}', res == ('boot', 0x80), res)
+
+
 def main(argv):
     build = argv[1] if len(argv) > 1 else 'Build'
     images = [('rivet_xt.bin', False), ('rivet_xtp.bin', False),
               ('rivet_xt_hs.bin', True), ('rivet_xtp_hs.bin', True)]
     for img, hs in images:
         test_image(os.path.join(build, img), hs)
+        test_nomenu_image(os.path.join(build, img[:-4] + '_nomenu.bin'), hs)
     for f in FAILURES:
         print('FAIL', f)
-    print(f'emu_test: {len(images)} images, {len(FAILURES)} failures')
+    print(f'emu_test: {2 * len(images)} images, {len(FAILURES)} failures')
     return 1 if FAILURES else 0
 
 
