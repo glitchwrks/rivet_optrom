@@ -16,7 +16,7 @@ struc ROMVARS
 	; Offset 8 (8h) starts here
 	.rgbDate		resb	8	; BIOS build date string (mm/dd/yy)
 	; Offset 16 (10h) starts here
-	.rgbSign		resb	8	; Signature for XTIDE Configurator Program
+	.rgbSign		resb	8	; Signature for configuration program
 	.szTitle		resb	31	; BIOS title string
 	.szVersion		resb	25	; BIOS version string
 	; Offset 80 (50h) starts here

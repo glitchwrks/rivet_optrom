@@ -29,7 +29,7 @@
 SRC_ASM = Src/Main.asm
 
 # Program executable file name without extension:
-PROG = ide
+PROG = rivet
 
 
 #######################################
