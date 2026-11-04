@@ -3,6 +3,7 @@
 ; Created date	:	4.4.2010
 ; Last update	:	13.4.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Macros for accessing data port(s) on 8-bit
 ;					IDE controllers.
 %ifndef IDE_8BIT_INC

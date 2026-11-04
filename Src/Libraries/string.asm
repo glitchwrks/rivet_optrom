@@ -3,6 +3,7 @@
 ; Created date	:	7.10.2009
 ; Last update	:	26.11.2009
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	ASM library to work as Standard C String and Character.
 
 ;--------------- Equates -----------------------------

@@ -3,6 +3,7 @@
 ; Created date	:	23.3.2010
 ; Last update	:	1.5.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Defines for ROMVARS struct containing variables stored
 ;					in BIOS ROM.
 %ifndef ROMVARS_INC

@@ -3,6 +3,7 @@
 ; Created date	:	28.3.2010
 ; Last update	:	16.4.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Functions for outputting IDE commands and parameters.
 
 ; Section containing code

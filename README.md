@@ -61,6 +61,20 @@ NASM and YASM pick different ones. Some `XCHG` operands in the source are
 in the order that makes NASM match the original YASM-built release, so
 please don't "tidy" them.
 
+## Contributing
+
+When you modify a source file inherited from v1.1.5 for the first time, add
+a line under its `Author` header:
+
+```
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
+```
+
+GPLv2 section 2(a) requires changed files to say they were changed. The
+line only needs adding once per file, since git history records the
+individual changes. Source files use CRLF line endings, so keep them that
+way.
+
 ## License
 
 Rivet is distributed under the GNU General Public License, version 2. See

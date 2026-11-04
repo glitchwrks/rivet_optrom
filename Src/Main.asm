@@ -3,6 +3,7 @@
 ; Created date	:	28.7.2007
 ; Last update	:	28.11.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Main file for BIOS. This is the only file that needs
 ;					to be compiled since other files are included to this
 ;					file (so no linker needed, Nasm does it all).

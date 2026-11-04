@@ -3,6 +3,7 @@
 ; Created date	:	14.12.2007
 ; Last update	:	1.8.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	PIO transfer functions.
 
 ; Structure containing variables for PIO transfer functions

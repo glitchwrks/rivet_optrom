@@ -3,6 +3,7 @@
 ; Created date	:	9.11.2009
 ; Last update	:	25.5.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	ASM library to menu system.
 ;					Contains menu drawing functions.
 

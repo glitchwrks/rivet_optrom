@@ -3,6 +3,7 @@
 ; Created date	:	22.9.2007
 ; Last update	:	13.4.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Software delay loops for I/O timeout and other loops.
 
 ; Section containing code
