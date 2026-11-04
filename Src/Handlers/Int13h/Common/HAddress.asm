@@ -3,6 +3,7 @@
 ; Created date	:	11.3.2010
 ; Last update	:	4.4.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Functions for address translations.
 
 ; Section containing code

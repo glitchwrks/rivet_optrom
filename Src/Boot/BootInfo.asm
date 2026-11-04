@@ -3,6 +3,7 @@
 ; Created date	:	16.3.2010
 ; Last update	:	9.4.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Functions for generating and accessing drive
 ;					information to be displayed on boot menu.
 

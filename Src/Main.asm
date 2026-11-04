@@ -3,6 +3,7 @@
 ; Created date	:	28.7.2007
 ; Last update	:	28.11.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Main file for BIOS. This is the only file that needs
 ;					to be compiled since other files are included to this
 ;					file (so no linker needed, Nasm does it all).
@@ -37,10 +38,11 @@ istruc ROMVARS
 	at	ROMVARS.wRomSign,	dw	0AA55h			; PC ROM signature
 	at	ROMVARS.bRomSize,	db	CNT_ROM_BLOCKS	; ROM size in 512B blocks
 	at	ROMVARS.rgbJump, 	jmp	Initialize_FromMainBiosRomSearch
-	at	ROMVARS.rgbDate,	db	"11/28/10"		; Build data (mm/dd/yy)
-	at	ROMVARS.rgbSign,	db	"XTIDE110"		; Signature for flash program
+	at	ROMVARS.rgbDate,	db	"11/04/26"		; Build data (mm/dd/yy)
+	at	ROMVARS.rgbSign,	db	"RIVET010"		; Signature for configuration program
+											; (change only when ROMVARS layout changes)
 	at	ROMVARS.szTitle
-		db	"-=XTIDE Universal BIOS"
+		db	"-=Rivet Option ROM"
 %ifdef USE_AT
 		db	" (AT)=-",STOP
 %elifdef USE_186
@@ -48,7 +50,7 @@ istruc ROMVARS
 %else
 		db	" (XT)=-",STOP
 %endif
-	at	ROMVARS.szVersion,	db	"v1.1.5 (11/28/10)",STOP
+	at	ROMVARS.szVersion,	db	"v0.1.0 (11/04/26)",STOP
 
 ;---------------------------;
 ; AT Build default settings ;

@@ -9,9 +9,17 @@ BIOS, so please don't report Rivet issues upstream.
 
 ## Status
 
-Early days. The current code is still the v1.1.5 release, with build
-changes so it assembles with NASM on Unix-like systems. There are no
-functional changes yet.
+Early days. Rivet v0.1.0 is the XTIDE Universal BIOS v1.1.5 code with a
+new identity. The boot screen shows `-=Rivet Option ROM (XT)=-` (or
+`(XT+)` / `(AT)`) and version `v0.1.0`, and the ROM carries the
+configuration signature `RIVET010` (not upstream's `XTIDE110`).
+The code is otherwise unchanged from v1.1.5, apart from build changes so
+it assembles with NASM on Unix-like systems.
+
+**Configuration:** the XTIDE Universal BIOS configurator (XTIDECFG) only
+recognizes ROMs with its own signature, so it can't configure or flash
+Rivet images. A Rivet configuration program is planned. Until it exists,
+Rivet images run with their built-in default settings.
 
 ## Building
 
@@ -31,24 +39,41 @@ make clean      # remove Build/
 
 Each build produces three 8 KB images with the option ROM checksum set:
 
-| Image               | Target CPU                                  |
-|---------------------|---------------------------------------------|
-| `Build/ide_xt.bin`  | 8086/8088                                   |
-| `Build/ide_xtp.bin` | 80186/80188, NEC V20/V30 and later          |
-| `Build/ide_at.bin`  | 80286 and later                             |
+| Image                 | Target CPU                                |
+|-----------------------|-------------------------------------------|
+| `Build/rivet_xt.bin`  | 8086/8088                                 |
+| `Build/rivet_xtp.bin` | 80186/80188, NEC V20/V30 and later        |
+| `Build/rivet_at.bin`  | 80286 and later                           |
 
 ### Baseline check
 
-`make check` compares build output against `Tools/baseline.sha256`. Right
-now `ide_xt.bin` must be byte-identical to the official XTIDE Universal
-BIOS v1.1.5 XT release image with factory defaults. If it fails, something
-changed the build output that wasn't meant to. Common causes are a source
-edit or a different assembler.
+`make check` compares all three images against `Tools/baseline.sha256`. If
+it fails, something changed the build output that wasn't meant to. Common
+causes are a source edit or a different assembler. Intended changes to the
+ROM update the baseline in the same commit.
+
+The v0.1.0 baseline images differ from the official v1.1.5 release images
+only in the ROM header identity (date, signature, title and version) and
+the checksum byte.
 
 Register-to-register `XCHG` instructions have two valid encodings, and
 NASM and YASM pick different ones. Some `XCHG` operands in the source are
 in the order that makes NASM match the original YASM-built release, so
 please don't "tidy" them.
+
+## Contributing
+
+When you modify a source file inherited from v1.1.5 for the first time, add
+a line under its `Author` header:
+
+```
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
+```
+
+GPLv2 section 2(a) requires changed files to say they were changed. The
+line only needs adding once per file, since git history records the
+individual changes. Source files use CRLF line endings, so keep them that
+way.
 
 ## License
 

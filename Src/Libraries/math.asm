@@ -3,6 +3,7 @@
 ; Created date	:	7.10.2009
 ; Last update	:	1.1.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	ASM library to for math related functions.		
 
 ;--------------- Equates -----------------------------
