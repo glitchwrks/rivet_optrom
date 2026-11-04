@@ -6,8 +6,8 @@ real machine is often worth more than code.
 
 ## Reporting bugs
 
-Please open a GitHub issue. If you can't use GitHub, email or DM works too
-(see the README). Include:
+Please open a GitHub issue. If you can't use GitHub, send the details
+through the [Glitch Works, LLC contact form][contact] instead. Include:
 
 - The machine, its BIOS, CPU (8088, V20, 286, ...) and video card
 - The XT-IDE board revision and its NORMAL / HI-SPEED jumper setting, or
@@ -80,5 +80,6 @@ guidance.
 Nobody is required to use these tools. Contributions written entirely by
 hand are, of course, just as welcome.
 
+[contact]: https://rails-services.glitchworks.net/messages/new
 [llvm]: https://llvm.org/docs/AIToolPolicy.html
 [kernel]: https://docs.kernel.org/process/coding-assistants.html
