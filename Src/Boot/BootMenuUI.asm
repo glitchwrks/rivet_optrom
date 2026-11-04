@@ -39,6 +39,7 @@ struc BMVARS
 	.wTimeLeft		resb	2	; Timer ticks left before timeout
 	.wTimeLast		resb	2	; Timer tick count when last checked
 	.wSecs			resb	2	; Seconds currently displayed
+	.wCrsrShape		resb	2	; Cursor shape to restore on exit
 	.bLeft			resb	1	; X coordinate of left border
 	.bTop			resb	1	; Y coordinate of top border
 	.bVisCnt		resb	1	; Number of visible menuitems
@@ -141,11 +142,17 @@ BootMenuUI_Run:
 .NoDefaultMenuitem:
 
 	; Draw menu and process keys until done
+	push	bp								; Save cursor shape set by the
+	mov		ah, 03h							; video BIOS (06/07h CGA,
+	xor		bx, bx							; 0B/0Ch MDA) so it can be
+	int		10h								; restored on exit
+	pop		bp
+	mov		[bp+BMVARS.wCrsrShape], cx
 	mov		cx, 2000h						; Hide cursor
 	call	BootMenuUI_SetCursorShapeToCX
 	call	BootMenuUI_DrawMenu
 	call	BootMenuUI_Loop
-	mov		cx, 0607h						; Show cursor
+	mov		cx, [bp+BMVARS.wCrsrShape]		; Show cursor
 	call	BootMenuUI_SetCursorShapeToCX
 
 	mov		cx, [bp+BMVARS.wItemSel]

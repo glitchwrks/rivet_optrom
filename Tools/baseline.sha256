@@ -11,9 +11,9 @@
 #
 # Any change to these hashes must come with an intended change to the ROM,
 # made in the same commit, and the commit message must say why.
-e38fc80732f0035e4d89193843a402a08f445c9ea337e511d4c9acc492a12324  Build/rivet_xt.bin
-61271c01f1d3121243b0882a94059f65ae31d9db860b9f633192f94e972f9a65  Build/rivet_xtp.bin
-4bc8b70b7d9d87a649cff8e57e14894c04ffa570462a3e32007f120ff31dc046  Build/rivet_at.bin
-fc15794672b28db8dff7a8daa67f6fae23a61374562776053be9ea3298d52924  Build/rivet_xt_hs.bin
-1e10de2799f406df162866ce61b67551e451a7bd22eaba04557e65fbadaa2dc9  Build/rivet_xtp_hs.bin
-484dec366eda079da6ca0702e9df7483fb8e5bc29579ef6ba51f63e5ba44be39  Build/rivet_at_hs.bin
+e94e95dd5bb2d63ed8bd468362a366153ab82f7227344073220eb3e2005e585c  Build/rivet_xt.bin
+43d402a0c8319b3c80b9c89d3226bf5894a05c52ff5265442f17e494f04617ec  Build/rivet_xtp.bin
+fffec9379feeb84777191acb61d1269501ac28a3444dd60eb99c0f5fb0504c81  Build/rivet_at.bin
+a5474c5059cc53f56c5270e386f6e45a46f6caa0ddb4a47b06325da73920d2c9  Build/rivet_xt_hs.bin
+c1b1d1a3724387a615f3599f049dd918bd97c9de54e7a88832b07a931037d9a2  Build/rivet_xtp_hs.bin
+7ab6301910098a87e0991c67ba96b8d2ca6dece4bc4b2497222b5adfbb9b5739  Build/rivet_at_hs.bin

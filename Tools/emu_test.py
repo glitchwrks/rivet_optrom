@@ -44,10 +44,13 @@ def patched(rom, offset, value):
     return bytes(image)
 
 
-def run(rom, hispeed=False, drives=1, floppies=1, keys=(), max_ticks=300):
+def run(rom, hispeed=False, drives=1, floppies=1, keys=(), max_ticks=300,
+        cursor_shape=None):
     d = xtemu.make_drives(drives) + [None] * (2 - drives)
     image = rom if isinstance(rom, bytes) else open(rom, 'rb').read()
     m = xtemu.Machine(image, d, hispeed, floppies, list(keys), max_ticks)
+    if cursor_shape is not None:
+        m.screen.cursor_shape = cursor_shape
     return m, m.boot()
 
 
@@ -81,6 +84,15 @@ def test_image(path, hispeed):
     m, res = run(patched(path, ROMVARS_BOOT_DELAY, 2), hispeed, keys=[],
                  max_ticks=200)
     check(f'{name} timeout boots', res == ('boot', 0x80), res)
+
+    # Cursor shape set by the video BIOS survives the menu (MDA uses
+    # scan lines 0Bh-0Ch; restoring a fixed CGA 0607h centres it)
+    for shape in (0x0B0C, 0x0607):
+        m, res = run(path, hispeed, keys=[(40, 'esc'), (60, 'enter')],
+                     cursor_shape=shape)
+        check(f'{name} cursor shape {shape:04X}',
+              res == ('boot', 0x80) and m.screen.cursor_shape == shape,
+              (res, hex(m.screen.cursor_shape)))
 
     # Image on a board jumpered for the other mode finds no drives
     m, res = run(path, not hispeed, keys=[], max_ticks=400)
