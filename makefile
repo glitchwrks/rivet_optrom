@@ -15,6 +15,8 @@
 # xt        XT build (8086/8088)                                              #
 # hispeed   All three builds defaulting to XTIDE HI-SPEED mode (*_hs.bin)     #
 # check     Builds, then checks images against Tools/baseline.sha256          #
+# emutest   Builds, then runs behaviour tests on an emulated XT (needs        #
+#           Python unicorn package)                                           #
 # clean     Removes Build/                                                    #
 #                                                                             #
 # Override the assembler or Python interpreter on the command line, e.g.:     #
@@ -49,7 +51,6 @@ HEADERS += Src/Handlers/Int13h/
 HEADERS += Src/Handlers/Int13h/Common/
 HEADERS += Src/Initialization/
 HEADERS += Src/Libraries/
-HEADERS += Src/Libraries/menu/
 HEADERS += Src/VariablesAndDPTs/
 
 
@@ -114,7 +115,7 @@ ASFLAGS = -f bin $(DEFS) $(IHEADERS) -Worphan-labels -O9
 # Build process. Actual work is done here. #
 ############################################
 
-.PHONY: all build at xtplus xt hispeed check clean
+.PHONY: all build at xtplus xt hispeed check emutest clean
 
 all: clean build
 	@echo All built!
@@ -155,6 +156,9 @@ $(TARGET)_xt_hs.bin: $(DEPS) Tools/checksum.py | $(BUILD_DIR)
 
 check: build
 	$(PYTHON) Tools/check_baseline.py -v Tools/baseline.sha256
+
+emutest: build
+	$(PYTHON) Tools/emu_test.py $(BUILD_DIR)
 
 clean:
 	rm -rf $(BUILD_DIR)

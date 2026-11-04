@@ -3,6 +3,7 @@
 ; Created date	:	25.3.2010
 ; Last update	:	3.8.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Displays Boot Menu.
 
 ; Section containing code
@@ -27,8 +28,7 @@ BootMenu_DisplayAndReturnSelection:
 	call	DriveXlate_Reset
 	call	BootMenuPrint_TheBottomOfScreen
 	call	BootMenu_GetMenuitemCount
-	mov		di, BootMenuEvent_Handler
-	call	BootMenu_Enter			; Get selected menuitem index to CX
+	call	BootMenuUI_Run			; Get selected menuitem index to CX
 	call	BootMenuPrint_ClearScreen
 	cmp		cx, BYTE 0				; -1 if nothing selected (ESC pressed)
 	jl		SHORT BootMenu_DisplayAndReturnSelection
@@ -83,77 +83,6 @@ BootMenu_GetMenuFunctionCount:
 	inc		cx
 ALIGN JUMP_ALIGN
 .DontIncludeRomBoot:
-	ret
-
-
-;--------------------------------------------------------------------
-; Enters Boot Menu or submenu.
-;
-; BootMenu_Enter
-;	Parameters:
-;		CX:		Number of menuitems in menu
-;		DS:SI:	User specific far pointer
-;		CS:DI:	Pointer to menu event handler function
-;	Returns:
-;		CX:		Index of last pointed Menuitem (not necessary selected with ENTER)
-;				FFFFh if cancelled with ESC
-;	Corrupts registers:
-;		AX, BX, DX
-;--------------------------------------------------------------------
-ALIGN JUMP_ALIGN
-BootMenu_Enter:
-	call	BootMenu_GetSelectionTimeout
-	call	BootMenu_GetSize
-	MIN_U	ah, [cs:ROMVARS.bBootMnuH]		; Limit to max height
-	jmp		Menu_Enter
-
-;--------------------------------------------------------------------
-; Returns Boot Menu selection timeout in milliseconds.
-;
-; BootMenu_GetSelectionTimeout
-;	Parameters:
-;		Nothing
-;	Returns:
-;		DX:		Selection timeout in millisecs
-;	Corrupts registers:
-;		AX
-;--------------------------------------------------------------------
-ALIGN JUMP_ALIGN
-BootMenu_GetSelectionTimeout:
-	mov		ax, 1000			; Seconds to milliseconds
-	eMOVZX	dx, BYTE [cs:ROMVARS.bBootDelay]
-	mul		dx					; AX = seconds * milliseconds_per_second
-	xchg	ax, dx				; DX = Timeout in millisecs
-	ret
-
-;--------------------------------------------------------------------
-; Returns Boot Menu size.
-;
-; BootMenu_GetSize
-;	Parameters:
-;		Nothing
-;	Returns:
-;		AL:		Menu width with borders included (characters)
-;		AH:		Menu height with borders included (characters)
-;		BL:		Title line count
-;		BH:		Info line count
-;	Corrupts registers:
-;		Nothing
-;--------------------------------------------------------------------
-ALIGN JUMP_ALIGN
-BootMenu_GetSize:
-	mov		al, MENU_WIDTH_IN_CHARS
-	mov		ah, cl						; Copy menuitem count to AH
-	test	BYTE [cs:ROMVARS.wFlags], FLG_ROMVARS_DRVNFO
-	jz		SHORT .GetHeightWithoutInfoArea
-;.GetHeightWithInfoArea:
-	add		ah, MENU_HEIGHT_IN_CHARS_WITH_INFO
-	mov		bx, (MENU_INFO_LINE_CNT<<8) | MENU_TITLE_LINE_CNT
-	ret
-ALIGN JUMP_ALIGN
-.GetHeightWithoutInfoArea:
-	add		ah, MENU_HEIGHT_IN_CHARS_WITHOUT_INFO
-	mov		bx, MENU_TITLE_LINE_CNT
 	ret
 
 

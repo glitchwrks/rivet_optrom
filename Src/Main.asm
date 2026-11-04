@@ -59,7 +59,7 @@ istruc ROMVARS
 %else
 		db	" (XT)=-",STOP
 %endif
-	at	ROMVARS.szVersion,	db	"v0.2.0 (11/04/26)",STOP
+	at	ROMVARS.szVersion,	db	"v0.3.0 (11/04/26)",STOP
 
 ;---------------------------;
 ; AT Build default settings ;
@@ -122,8 +122,6 @@ iend
 %include "math.asm"				; For Math library
 %include "string.asm"			; For String library
 %include "print.asm"			; For Print library
-%include "keys.asm"				; For keyboard library (required by menu library)
-%include "menu.asm"				; For menu library
 %include "PrintString.asm"		; Customized printing for this BIOS
 %include "SoftDelay.asm"		; For software delay loops
 
@@ -143,7 +141,7 @@ iend
 ; Include .asm files (boot menu)
 %include "BootVars.asm"			; For accessing BOOTVARS struct
 %include "BootMenu.asm"			; For Boot Menu operations
-%include "BootMenuEvent.asm"	; For menu library event handling
+%include "BootMenuUI.asm"		; For Boot Menu drawing and keys
 %include "FloppyDrive.asm"		; Floppy Drive related functions
 %include "BootMenuPrint.asm"	; For printing Boot Menu strings
 %include "BootMenuPrintCfg.asm"	; For printing hard disk configuration
