@@ -1,0 +1,49 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: make check (NASM ${{ matrix.nasm }})
+    runs-on: ubuntu-latest
+    container: ${{ matrix.image }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Each image's distro package gives a fixed NASM version.
+          - image: ubuntu:22.04
+            nasm: 2.15.05
+          - image: ubuntu:24.04
+            nasm: 2.16.01
+
+    steps:
+      - name: Install build tools
+        run: |
+          apt-get update -qq
+          DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends make nasm python3
+
+      - name: Confirm NASM version
+        run: |
+          nasm -v
+          nasm -v | grep -Eq "^NASM version ${{ matrix.nasm }}( |$)" || {
+            echo "::error::Expected NASM ${{ matrix.nasm }}"
+            exit 1
+          }
+
+      - uses: actions/checkout@v4
+
+      - name: Build and check against baseline
+        run: make check
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rivet-images-nasm-${{ matrix.nasm }}
+          path: Build/*.bin
+          if-no-files-found: error
