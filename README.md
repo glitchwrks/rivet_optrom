@@ -139,17 +139,9 @@ second while waiting (v0.2.0 made about 780), and about 130 per arrow key
 
 ## Contributing
 
-When you modify a source file inherited from v1.1.5 for the first time, add
-a line under its `Author` header:
-
-```
-; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
-```
-
-GPLv2 section 2(a) requires changed files to say they were changed. The
-line only needs adding once per file, since git history records the
-individual changes. Source files use CRLF line endings, so keep them that
-way.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to report bugs and submit
+patches, the source-file conventions, and the policy on AI-assisted
+contributions.
 
 ## License
 
