@@ -56,8 +56,9 @@ FLG_ROMVARS_MAXSIZE		EQU	(1<<5)	; Maximize size by sacrificing compatibility wit
 ; correctly as full builds).
 FLG_BUILD_NOBOOTMENU	EQU	(1<<0)	; Built without the Boot Menu (BOOTLOADER_TYPE_MENU
 								; falls back to BOOTLOADER_TYPE_SIMPLE; bBootDrv,
-								; bBootMnuH, bBootDelay, FLG_ROMVARS_ROMBOOT and
-								; FLG_ROMVARS_DRVNFO are not used)
+								; bBootMnuH, bBootDelay, FLG_ROMVARS_ROMBOOT,
+								; FLG_ROMVARS_DRVNFO and FLG_ROMVARS_DRVXLAT are
+								; not used)
 
 ; Bootloader types for ROMVARS.bBootLdrType
 BOOTLOADER_TYPE_MENU	EQU	(0<<1)	; Display boot menu on boot loader

@@ -165,7 +165,9 @@ iend
 %endif
 
 ; Include .asm files (general drive accessing)
+%ifdef MODULE_BOOT_MENU
 %include "DriveXlate.asm"		; For swapping drive numbers
+%endif
 %include "HAddress.asm"			; For sector address translations
 %include "HCapacity.asm"		; For calculating drive capacity
 %include "HError.asm"			; For error checking

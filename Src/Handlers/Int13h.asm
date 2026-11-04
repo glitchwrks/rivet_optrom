@@ -3,6 +3,7 @@
 ; Created date	:	21.9.2007
 ; Last update	:	24.8.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Int 13h BIOS functions (Floppy and Hard disk).
 
 ; Section containing code
@@ -53,7 +54,9 @@ Int13h_DiskFunctions:
 
 	;DEBUG_PRINT_DRIVE_AND_FUNCTION
 	call	RamVars_GetSegmentToDS
+%ifdef MODULE_BOOT_MENU
 	call	DriveXlate_WhenEnteringInt13h
+%endif
 	call	RamVars_IsFunctionHandledByThisBIOS
 	jnc		SHORT Int13h_DirectCallToAnotherBios
 	;DEBUG_PRINT_DRIVE_AND_FUNCTION
@@ -92,6 +95,7 @@ Int13h_DirectCallToAnotherBios:
 	pop		WORD [RAMVARS.wI13hDI]
 	pop		WORD [RAMVARS.wI13hDS]
 
+%ifdef MODULE_BOOT_MENU
 	; Special return processing required if target function
 	; returns something in DL
 	mov		di, Int13h_ReturnFromAnotherBiosWithValueInDL
@@ -102,6 +106,11 @@ Int13h_DirectCallToAnotherBios:
 	pushf								; Push FLAGS to simulate INT
 	push	cs							; Push return segment
 	push	di							; Push return offset
+%else
+	; Without the Boot Menu there is no drive translation, so nothing
+	; needs doing on the way back: the other handler's IRET returns
+	; straight to our caller.
+%endif
 
 	; "Return" to another INT 13h with original DI and DS
 	push	WORD [RAMVARS.fpOldI13h+2]	; Segment
@@ -143,6 +152,7 @@ Int13h_CallPreviousInt13hHandler:
 ;	Corrupts registers:
 ;		Nothing (not even FLAGS)
 ;--------------------------------------------------------------------
+%ifdef MODULE_BOOT_MENU
 ALIGN JUMP_ALIGN
 Int13h_ReturnFromAnotherBiosWithValueInDL:
 	push	ds
@@ -160,6 +170,7 @@ Int13h_ReturnFromAnotherBios:
 	call	RamVars_GetSegmentToDS
 	call	DriveXlate_WhenLeavingInt13h
 	jmp		SHORT Int13h_Leave
+%endif ; MODULE_BOOT_MENU
 
 
 ;--------------------------------------------------------------------
@@ -179,7 +190,9 @@ Int13h_ReturnFromAnotherBios:
 ALIGN JUMP_ALIGN
 Int13h_ReturnWithValueInDL:
 	pushf
+%ifdef MODULE_BOOT_MENU
 	call	DriveXlate_WhenLeavingInt13hWithReturnValueInDL
+%endif
 	jmp		SHORT Int13h_LeaveAfterStoringErrorCodeToBDA
 
 ALIGN JUMP_ALIGN
@@ -194,7 +207,9 @@ Int13h_PopXRegsAndReturn:
 ALIGN JUMP_ALIGN
 Int13h_PopDiDsAndReturn:
 	pushf
+%ifdef MODULE_BOOT_MENU
 	call	DriveXlate_WhenLeavingInt13h
+%endif
 	; Fall to Int13h_LeaveAfterStoringErrorCodeToBDA
 
 Int13h_LeaveAfterStoringErrorCodeToBDA:

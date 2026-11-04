@@ -153,8 +153,19 @@ system BIOS does: from A: if it holds a bootable disk, otherwise from the
 first hard disk. There is no prompt and no wait.
 
 Settings that only the boot menu uses (default boot drive, menu height,
-selection timeout, ROM Boot item, drive info) have no effect in these
-images, and a boot loader setting of "boot menu" acts as "simple". The ROM
+selection timeout, ROM Boot item, drive info, drive number translation)
+have no effect in these images, and a boot loader setting of "boot menu"
+acts as "simple".
+
+Drive number translation is what lets the menu boot a drive other than
+the first one, by swapping its number with 00h or 80h. Without the menu
+nothing sets up a swap, so the no-menu images leave it out. That also
+lets INT 13h calls for drives Rivet doesn't handle (floppies, or drives
+belonging to another option ROM) go straight to the previous handler,
+which returns directly to the caller instead of back through Rivet.
+Sharing INT 13h with other option ROMs works the same either way; that is
+handled separately, by numbering Rivet's drives after the ones already
+present and passing other drives' calls along. The ROM
 header says which kind of image it is, in the read-only `wBuildFlags`
 field at offset 59h: bit 0 (`FLG_BUILD_NOBOOTMENU`) is set in `_nomenu`
 images. A configuration program uses this to show only the settings that

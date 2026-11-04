@@ -3,6 +3,7 @@
 ; Created date	:	19.3.2010
 ; Last update	:	1.4.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Functions for printing boot related strings.
 
 ; Section containing code
@@ -27,7 +28,9 @@ BootPrint_TryToBootFromDL:
 
 	xor		dh, dh				; Translated drive number to DX
 	push	dx					; Push translated drive number
+%ifdef MODULE_BOOT_MENU			; (no translation without Boot Menu)
 	call	DriveXlate_ToOrBack
+%endif
 	push	dx					; Push untranslated drive number
 
 	mov		ax, g_szFloppyDrv	; Assume "Floppy Drive"
