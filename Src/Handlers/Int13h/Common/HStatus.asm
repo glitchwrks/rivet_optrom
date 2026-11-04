@@ -3,6 +3,7 @@
 ; Created date	:	15.12.2009
 ; Last update	:	23.8.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	IDE Status Register polling functions.
 
 ; Section containing code
@@ -176,11 +177,11 @@ HStatus_WaitDrqBase:
 ALIGN JUMP_ALIGN
 HStatus_PollBsyAndFlg:
 	call	SoftDelay_InitTimeout				; Initialize timeout counter
-	in		al, dx								; Discard contents for first read
+	call	HIdeIO_InputALfromPortDX								; Discard contents for first read
 												; (should read Alternate Status Register)
 ALIGN JUMP_ALIGN
 .PollLoop:
-	in		al, dx								; Load IDE Status Register
+	call	HIdeIO_InputALfromPortDX								; Load IDE Status Register
 	test	al, FLG_IDE_ST_BSY					; Controller busy?
 	jnz		SHORT .UpdateTimeout				;  If so, jump to timeout update
 	test	al, ah								; Test secondary flag
@@ -210,11 +211,11 @@ ALIGN JUMP_ALIGN
 ALIGN JUMP_ALIGN
 HStatus_PollBsy:
 	call	SoftDelay_InitTimeout				; Initialize timeout counter
-	in		al, dx								; Discard contents for first read
+	call	HIdeIO_InputALfromPortDX								; Discard contents for first read
 												; (should read Alternate Status Register)
 ALIGN JUMP_ALIGN
 .PollLoop:
-	in		al, dx								; Load IDE Status Reg
+	call	HIdeIO_InputALfromPortDX								; Load IDE Status Reg
 	test	al, FLG_IDE_ST_BSY					; Controller busy?
 	jz		SHORT GetErrorCodeFromPollingToAH	;  If not, jump to check errors
 	call	SoftDelay_UpdTimeout				; Update timeout counter

@@ -1,15 +1,18 @@
 # SHA-256 of build outputs that must match known-good images.
 #
-# Rivet v0.1.0 is XTIDE Universal BIOS v1.1.5 with only the ROM header
-# identity changed: date, configuration-program signature, title and
-# version strings. In all three images, every byte from offset 60h up to
-# the checksum byte is identical to v1.1.5. The XT image was checked
-# against the v1.1.5 factory-default release image, the AT image against
-# configured v1.1.5 AT release images, and the XT+ image against the
-# byte-exact v1.1.5 NASM build (commit 9133965).
+# Rivet v0.2.0: XTIDE Universal BIOS v1.1.5 plus XTIDE HI-SPEED mode
+# (A0/A3 swapped, "Chuck mod") support. *_hs.bin images default to
+# HI-SPEED mode; the others default to the original register layout.
+#
+# v0.1.0 (identity change only) was verified identical to v1.1.5 from offset
+# 60h up to the checksum byte. The v0.2.0 changes are described in the
+# commit that introduced these hashes.
 #
 # Any change to these hashes must come with an intended change to the ROM,
 # made in the same commit, and the commit message must say why.
-5968f327a0baf696c93a37a5df828990b4988046533e39f584938d1c783f3e37  Build/rivet_xt.bin
-5ed9d7147e24b2b60e5c123e261abf854b87e952af9fd77ccae6245930534fac  Build/rivet_xtp.bin
-f8f68026abd84800a609c883499e32544be5a1be044d86276c128d5fb0252a10  Build/rivet_at.bin
+0d15e07aed9860adab33d580425cfdfd639eca5980a8d351c7383e36a0b93781  Build/rivet_xt.bin
+5ebf92c0a72633523d92707d654ae60a15ce26c909d09508c2b1c4ef4f768a3b  Build/rivet_xtp.bin
+91f2106af9b1ef334f1fd6f0d768d74169a6bb33efd89fcc06fe693910868bac  Build/rivet_at.bin
+ab75ac9f221ef5a9fe5002467560deacc4f4402754f295742152264d9c0e49e8  Build/rivet_xt_hs.bin
+9250c3435b18469e0371243f3cf3f710cd50999d9e31ab2ef5c411abf8b2dec1  Build/rivet_xtp_hs.bin
+9c599cc2a644dae45f2f17eecda78099052e58d1fd9b57b5f4d29cfc0025bc72  Build/rivet_at_hs.bin

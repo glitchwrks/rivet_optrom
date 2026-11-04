@@ -70,8 +70,12 @@ ALIGN JUMP_ALIGN
 ;--------------------------------------------------------------------
 ; Emulates REP OUTSW for XTIDE dual (8-bit) data port.
 ;
-; eREP_DUAL_BYTE_PORT_OUTSW
+; The caller loads BX with the port address bit that selects the XTIDE
+; Data High Register: 8 (A3) normally, 1 (A0) in HI-SPEED mode.
+;
+; eREP_DUAL_BYTE_PORT_OUTSW_WITH_MASK_IN_BX
 ;	Parameters:
+;		BX:		Bit mask for toggling XTIDE data low/high reg
 ;		CX:		Loop count
 ;		DX:		Port address (must be IDE Data Register)
 ;		ES:SI:	Ptr to source buffer
@@ -80,11 +84,9 @@ ALIGN JUMP_ALIGN
 ;	Corrupts registers:
 ;		AX, CX
 ;--------------------------------------------------------------------
-%macro eREP_DUAL_BYTE_PORT_OUTSW 0
+%macro eREP_DUAL_BYTE_PORT_OUTSW_WITH_MASK_IN_BX 0
 	push	ds
-	push	bx
 	times 2	shr	cx, 1			; Loop unrolling
-	mov		bx, 8				; Bit mask for toggling data low/high reg
 	push	es					; Copy ES...
 	pop		ds					; ...to DS
 ALIGN JUMP_ALIGN
@@ -94,7 +96,6 @@ ALIGN JUMP_ALIGN
 	eDUAL_BYTE_PORT_OUTSW
 	eDUAL_BYTE_PORT_OUTSW
 	loop	%%OutswLoop
-	pop		bx
 	pop		ds
 %endmacro
 

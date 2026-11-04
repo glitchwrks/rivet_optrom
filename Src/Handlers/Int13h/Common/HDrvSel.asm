@@ -3,6 +3,7 @@
 ; Created date	:	25.2.2010
 ; Last update	:	13.4.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Functions for selecting Master or Slave drive.
 
 ; Section containing code
@@ -56,7 +57,7 @@ HDrvSel_SelectDriveAndSetControlByte:
 	mov		dx, [RAMVARS.wIdeBase]
 	add		dx, BYTE REG_IDE_DRVHD
 	mov		al, [di+DPT.bDrvSel]			; Load Master/Slave selection byte
-	out		dx, al							; Select drive
+	call	HIdeIO_OutputALtoPortDX							; Select drive
 
 	; Wait until drive is ready to accept commands
 	call	SoftDelay_BeforePollingStatusRegister
@@ -83,7 +84,7 @@ HDrvSel_OutputDeviceControlByte:
 	eMOVZX	bx, BYTE [di+DPT.bIdeOff]		; CS:BX now points to IDEVARS
 	mov		dx, [cs:bx+IDEVARS.wPortCtrl]	; Load Control Block base address
 	add		dx, BYTE REGW_IDEC_CTRL			; Add offset to Device Control Register
-	out		dx, al							; Output Device Control byte
+	call	HIdeIO_OutputALtoPortDX							; Output Device Control byte
 	ret
 
 

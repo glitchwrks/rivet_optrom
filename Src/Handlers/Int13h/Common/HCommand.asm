@@ -72,22 +72,22 @@ ALIGN JUMP_ALIGN
 HCommand_OutputTranslatedLCHSaddress:
 	add		dx, BYTE REG_IDE_LBA_LOW
 	mov		al, bl
-	out		dx, al						; Output LBA 7...0
+	call	HIdeIO_OutputALtoPortDX						; Output LBA 7...0
 
 	; Some (VLB) controllers fail to accept WORD write to cylinder
 	; registers so we must output two bytes instead.
 	inc		dx							; REG_IDE_LBA_MID
 	mov		al, cl
-	out		dx, al						; Output LBA 8...15
+	call	HIdeIO_OutputALtoPortDX						; Output LBA 8...15
 
 	inc		dx							; REG_IDE_LBA_HIGH
 	mov		al, ch
-	out		dx, al						; Output LBA 16...23
+	call	HIdeIO_OutputALtoPortDX						; Output LBA 16...23
 
 	inc		dx							; REG_IDE_DRVHD
 	mov		al, [di+DPT.bDrvSel]		; Load other bits for Drive and Head Register
 	or		al, bh
-	out		dx, al						; Output LBA 27...24
+	call	HIdeIO_OutputALtoPortDX						; Output LBA 27...24
 
 	sub		dx, BYTE REG_IDE_DRVHD-REG_IDE_CNT
 	ret
@@ -108,9 +108,9 @@ HCommand_OutputTranslatedLCHSaddress:
 ;--------------------------------------------------------------------	
 ALIGN JUMP_ALIGN
 HCommand_OutputSectorCountAndCommand:
-	out		dx, al						; Output sector count
+	call	HIdeIO_OutputALtoPortDX						; Output sector count
 	add		dx, BYTE REGW_IDE_CMD-REG_IDE_CNT
 	xchg	ah, al						; AL=Command, AH=Sector count
-	out		dx, al
+	call	HIdeIO_OutputALtoPortDX
 	mov		al, ah						; Restore sector count to AL
 	jmp		SoftDelay_BeforePollingStatusRegister

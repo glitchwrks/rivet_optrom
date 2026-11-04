@@ -3,6 +3,7 @@
 ; Created date	:	14.3.2010
 ; Last update	:	12.4.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Functions for finding Disk Parameter Table.
 
 ; Section containing code
@@ -149,8 +150,10 @@ ALIGN JUMP_ALIGN
 FindDPT_RightDriveNumber:
 	push	bx
 	eMOVZX	bx, BYTE [di+DPT.bIdeOff]		; CS:BX now points to IDEVARS
-	mov		bx, [cs:bx+IDEVARS.wPort]		; Load IDE Base Port address...
-	mov		[RAMVARS.wIdeBase], bx			; ...and store it to RAMVARS
+	push	WORD [cs:bx+IDEVARS.wPort]		; Load IDE Base Port address...
+	pop		WORD [RAMVARS.wIdeBase]			; ...and store it to RAMVARS
+	mov		bl, [cs:bx+IDEVARS.bBusType]	; Load bus type...
+	mov		[RAMVARS.bIdeBusType], bl		; ...and store it to RAMVARS
 	pop		bx
 	stc
 	ret

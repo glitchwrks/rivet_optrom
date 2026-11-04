@@ -3,6 +3,7 @@
 ; Created date	:	30.11.2007
 ; Last update	:	24.8.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Error checking functions for BIOS Hard disk functions.
 
 ; Section containing code
@@ -54,10 +55,10 @@ HError_GetStatusAndErrorRegistersToAXandStoreThemToBDA:
 
 	mov		dx, [RAMVARS.wIdeBase]		; Load IDE base port address
 	inc		dx							; Increment to Error Register
-	in		al, dx						; Read Error Register...
+	call	HIdeIO_InputALfromPortDX						; Read Error Register...
 	mov		ah, al						; ...and copy it to AH
 	add		dx, BYTE REGR_IDE_ST - REGR_IDE_ERROR
-	in		al, dx						; Read Status Register to AL
+	call	HIdeIO_InputALfromPortDX						; Read Status Register to AL
 
 	LOAD_BDA_SEGMENT_TO	ds, dx
 	mov		[HDBDA.wHDStAndErr], ax

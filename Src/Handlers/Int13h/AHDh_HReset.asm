@@ -3,6 +3,7 @@
 ; Created date	:	9.12.2007
 ; Last update	:	24.8.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Int 13h function AH=Dh, Reset Hard Disk (Alternate reset).
 
 ; Section containing code
@@ -92,7 +93,7 @@ AHDh_ResetMasterAndSlave:
 
 	; HSR1: Clear_wait
 	and		al, ~FLG_IDE_CTRL_SRST		; Clear Reset bit
-	out		dx, al						; End Reset
+	call	HIdeIO_OutputALtoPortDX						; End Reset
 	mov		cx, 2000					; Delay at least 2ms
 	call	SoftDelay_us
 

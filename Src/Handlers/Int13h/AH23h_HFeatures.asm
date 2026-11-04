@@ -3,6 +3,7 @@
 ; Created date	:	28.12.2009
 ; Last update	:	12.4.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Int 13h function AH=23h,
 ;					Set Controller Features Register.
 
@@ -52,7 +53,7 @@ AH23h_HandlerForSetControllerFeatures:
 	mov		ax, si						; Feature number to AL
 	mov		dx, [RAMVARS.wIdeBase]		; Load base port address
 	inc		dx							; REGW_IDE_FEAT
-	out		dx, al
+	call	HIdeIO_OutputALtoPortDX
 
 	; Output parameters to Sector Number Register and Cylinder Registers
 	xor		bh, bh						; Zero head number

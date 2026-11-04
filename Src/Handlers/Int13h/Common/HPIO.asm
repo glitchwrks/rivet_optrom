@@ -274,8 +274,19 @@ HPIO_DualByteRead:
 	ret
 ALIGN JUMP_ALIGN
 HPIO_WordRead:
+%ifdef USE_186
 	rep
 	db		6Dh			; INSW
+%else	; If 8088/8086 (used for XTIDE HI-SPEED mode)
+	times 2	shr	cx, 1	; Loop unrolling
+ALIGN JUMP_ALIGN
+.InwLoop:
+	%rep 4
+	in		ax, dx		; On 8-bit bus: low byte from DX, high byte from DX+1
+	stosw
+	%endrep
+	loop	.InwLoop
+%endif
 	ret
 ALIGN JUMP_ALIGN
 HPIO_DWordRead:
@@ -290,8 +301,17 @@ HPIO_SingleByteRead:
 	ret
 
 ALIGN JUMP_ALIGN
+HPIO_HiSpeedDualByteWrite:
+	push	bx
+	mov		bx, 1		; XTIDE Data High Reg is Data Reg + 1 (A0)
+	jmp		SHORT HPIO_DualByteWriteWithMaskInBX
+ALIGN JUMP_ALIGN
 HPIO_DualByteWrite:
-	eREP_DUAL_BYTE_PORT_OUTSW
+	push	bx
+	mov		bx, 8		; XTIDE Data High Reg is Data Reg + 8 (A3)
+HPIO_DualByteWriteWithMaskInBX:
+	eREP_DUAL_BYTE_PORT_OUTSW_WITH_MASK_IN_BX
+	pop		bx
 	ret
 ALIGN JUMP_ALIGN
 HPIO_WordWrite:
@@ -318,8 +338,10 @@ g_rgfnPioRead:
 	dw		HPIO_WordRead			; 16-bit reads
 	dw		HPIO_DWordRead			; 32-bit reads
 	dw		HPIO_SingleByteRead		; 8-bit single port reads
+	dw		HPIO_WordRead			; XTIDE HI-SPEED mode reads (WORD access, A0 selects high byte)
 g_rgfnPioWrite:
 	dw		HPIO_DualByteWrite		; 8-bit dual port writes
 	dw		HPIO_WordWrite			; 16-bit writes
 	dw		HPIO_DWordWrite			; 32-bit writes
 	dw		HPIO_SingleByteWrite	; 8-bit single port writes
+	dw		HPIO_HiSpeedDualByteWrite	; XTIDE HI-SPEED mode writes (high byte first, then low)
