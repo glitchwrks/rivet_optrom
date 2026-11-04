@@ -109,6 +109,12 @@ def test_image(path, hispeed):
               and 'Selection Timeout' not in m.screen.text(),
               (res, m.screen.text()))
 
+    # A key already in the keyboard buffer when the menu opens (pressed
+    # during POST) is discarded, so the timeout still boots the default
+    m, res = run(patched(path, ROMVARS_BOOT_DELAY, 2), hispeed,
+                 keys=[(0, 'down')], max_ticks=80)
+    check(f'{name} POST key discarded', res == ('boot', 0x80), res)
+
     # Cursor shape set by the video BIOS survives the menu (MDA uses
     # scan lines 0Bh-0Ch; restoring a fixed CGA 0607h centres it)
     for shape in (0x0B0C, 0x0607):

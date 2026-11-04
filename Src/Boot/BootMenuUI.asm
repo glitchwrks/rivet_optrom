@@ -148,6 +148,21 @@ BootMenuUI_Run:
 	mov		[bp+BMVARS.wItemTop], cx		; Set default to topmost
 .NoDefaultMenuitem:
 
+	; Discard keys pressed before the menu appeared (e.g. during POST),
+	; so a stray keypress can't stop the timeout of an unattended boot.
+	; Keys pressed while the menu is being drawn are still processed.
+.DrainKeyboardBuffer:
+	push	bp
+	mov		ah, 01h							; Check for keystroke
+	int		16h
+	jz		SHORT .KeyboardBufferEmpty
+	xor		ah, ah							; Read (and discard) keystroke
+	int		16h
+	pop		bp
+	jmp		SHORT .DrainKeyboardBuffer
+.KeyboardBufferEmpty:
+	pop		bp
+
 	; Draw menu and process keys until done
 	push	bp								; Save cursor shape set by the
 	mov		ah, 03h							; video BIOS (06/07h CGA,

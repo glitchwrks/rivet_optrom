@@ -135,6 +135,10 @@ The boot menu keeps the v1.1.5 look and keys. One behaviour change since
 v0.4.0: **any keypress stops the selection timeout for good**, and the
 countdown disappears from the bottom border. It stays stopped if the menu
 is shown again during the same boot (after Esc, or after a failed boot).
+Keys already waiting in the keyboard buffer when the menu opens, such as
+ones pressed during POST, are discarded first, so a stray keypress can't
+stop an unattended boot. Keys pressed while the menu is being drawn still
+count.
 v1.1.5 only restarted the countdown on a selection change, so anyone who
 needed time, for example to fetch a boot floppy, had to keep pressing
 arrow keys.
