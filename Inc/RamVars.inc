@@ -3,6 +3,7 @@
 ; Created date	:	23.3.2010
 ; Last update	:	8.4.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	RAMVARS struct containing BIOS variables stored in RAM.
 %ifndef RAMVARS_INC
 %define RAMVARS_INC
@@ -31,7 +32,7 @@ struc RAMVARS
 
 	.wI13hDS:
 	.bEndTime		resb	1	; Timeout ending time
-					resb	1	; Alignment
+	.bIdeBusType	resb	1	; Bus type for currently handled controller
 
 	.wDrvCntAndFirst:
 	.bDrvCnt		resb	1	; Number of drives handled by this BIOS

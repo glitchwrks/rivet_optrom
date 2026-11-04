@@ -69,6 +69,7 @@ BUS_TYPE_8_DUAL			EQU	(0<<1)	; XTIDE transfers with two 8-bit data ports
 BUS_TYPE_16				EQU	(1<<1)	; Normal 16-bit AT-IDE transfers
 BUS_TYPE_32				EQU	(2<<1)	; 32-bit VLB and PCI transfers
 BUS_TYPE_8_SINGLE		EQU	(3<<1)	; 8-bit transfers with single 8-bit data port
+BUS_TYPE_8_HISPEED		EQU	(4<<1)	; XTIDE HI-SPEED mode (A0 and A3 swapped, "Chuck mod")
 
 
 ; Master/Slave drive specific parameters

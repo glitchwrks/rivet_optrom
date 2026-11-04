@@ -3,6 +3,7 @@
 ; Created date	:	24.10.2009
 ; Last update	:	14.4.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Int 13h function AH=25h, Get Drive Information.
 
 ; Section containing code
@@ -79,9 +80,10 @@ AH25h_GetDriveInfo:
 	; DO NOT WAIT UNTIL CURRENTLY SELECTED IS READY!
 	; It makes slave drive detection impossible if master is not present.
 	mov		[RAMVARS.wIdeBase], dx		; Store IDE Base port to RAMVARS
+	mov		[RAMVARS.bIdeBusType], bl	; Store bus type to RAMVARS
 	add		dx, BYTE REG_IDE_DRVHD		; DX to Drive and Head Sel Register
 	mov		al, bh						; Drive Select byte to AL
-	out		dx, al						; Select Master or Slave drive
+	call	HIdeIO_OutputALtoPortDX						; Select Master or Slave drive
 	sub		dx, BYTE REG_IDE_DRVHD		; Back to IDE Base port
 	call	AH25h_GetDriveDetectionTimeoutValue
 	call	HStatus_WaitRdy				; Wait until ready to accept commands
@@ -89,7 +91,7 @@ AH25h_GetDriveInfo:
 
 	; Output command
 	mov		al, HCMD_ID_DEV				; Load Identify Device command to AL
-	out		dx, al						; Output command
+	call	HIdeIO_OutputALtoPortDX						; Output command
 	call	SoftDelay_BeforePollingStatusRegister
 	call	HStatus_WaitDrqDefTime		; Wait until ready to transfer (no IRQ!)
 	jc		SHORT .Return				; Return if error

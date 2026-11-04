@@ -3,6 +3,7 @@
 ; Created date	:	28.3.2010
 ; Last update	:	9.4.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Functions for printing drive configuration
 ;					information on Boot Menu.
 
@@ -162,6 +163,7 @@ ALIGN WORD_ALIGN
 	db		' ', 16		; BUS_TYPE_16
 	db		' ', 32		; BUS_TYPE_32
 	db		'S', 8		; BUS_TYPE_8_SINGLE
+	db		'H', 8		; BUS_TYPE_8_HISPEED
 ALIGN JUMP_ALIGN
 .NextPush:
 

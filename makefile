@@ -13,6 +13,7 @@
 # at        AT build (286+)                                                   #
 # xtplus    XT+ build (80186/80188, V20/V30)                                  #
 # xt        XT build (8086/8088)                                              #
+# hispeed   All three builds defaulting to XTIDE HI-SPEED mode (*_hs.bin)     #
 # check     Builds, then checks images against Tools/baseline.sha256          #
 # clean     Removes Build/                                                    #
 #                                                                             #
@@ -59,6 +60,7 @@ DEFINES =
 DEFINES_XT =
 DEFINES_XTPLUS = USE_186
 DEFINES_AT = USE_186 USE_286 USE_AT
+DEFINES_HISPEED = DEFAULT_HISPEED
 
 
 ###################
@@ -70,6 +72,7 @@ DEFS = $(DEFINES:%=-D%)
 DEFS_XT = $(DEFINES_XT:%=-D%)
 DEFS_XTPLUS = $(DEFINES_XTPLUS:%=-D%)
 DEFS_AT = $(DEFINES_AT:%=-D%)
+DEFS_HISPEED = $(DEFINES_HISPEED:%=-D%)
 
 # Add -I in front of all header directories
 IHEADERS = $(HEADERS:%=-I%)
@@ -111,16 +114,17 @@ ASFLAGS = -f bin $(DEFS) $(IHEADERS) -Worphan-labels -O9
 # Build process. Actual work is done here. #
 ############################################
 
-.PHONY: all build at xtplus xt check clean
+.PHONY: all build at xtplus xt hispeed check clean
 
 all: clean build
 	@echo All built!
 
-build: at xtplus xt
+build: at xtplus xt hispeed
 
 at: $(TARGET)_at.bin
 xtplus: $(TARGET)_xtp.bin
 xt: $(TARGET)_xt.bin
+hispeed: $(TARGET)_at_hs.bin $(TARGET)_xtp_hs.bin $(TARGET)_xt_hs.bin
 
 $(BUILD_DIR):
 	mkdir -p $@
@@ -135,6 +139,18 @@ $(TARGET)_xtp.bin: $(DEPS) Tools/checksum.py | $(BUILD_DIR)
 
 $(TARGET)_xt.bin: $(DEPS) Tools/checksum.py | $(BUILD_DIR)
 	$(AS) $(ASFLAGS) $(DEFS_XT) -o $@ $(SRC_ASM)
+	$(CHECKSUM) $@
+
+$(TARGET)_at_hs.bin: $(DEPS) Tools/checksum.py | $(BUILD_DIR)
+	$(AS) $(ASFLAGS) $(DEFS_AT) $(DEFS_HISPEED) -o $@ $(SRC_ASM)
+	$(CHECKSUM) $@
+
+$(TARGET)_xtp_hs.bin: $(DEPS) Tools/checksum.py | $(BUILD_DIR)
+	$(AS) $(ASFLAGS) $(DEFS_XTPLUS) $(DEFS_HISPEED) -o $@ $(SRC_ASM)
+	$(CHECKSUM) $@
+
+$(TARGET)_xt_hs.bin: $(DEPS) Tools/checksum.py | $(BUILD_DIR)
+	$(AS) $(ASFLAGS) $(DEFS_XT) $(DEFS_HISPEED) -o $@ $(SRC_ASM)
 	$(CHECKSUM) $@
 
 check: build

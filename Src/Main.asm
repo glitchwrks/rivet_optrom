@@ -32,6 +32,15 @@ ORG 000h						; Code start offset 0000h
 ; Section containing code
 SECTION .text
 
+; Bus type for the XTIDE controller in the default settings. Define
+; DEFAULT_HISPEED to build images for XTIDE boards jumpered for
+; HI-SPEED mode (A0 and A3 swapped, "Chuck mod").
+%ifdef DEFAULT_HISPEED
+	%define XTIDE_DEFAULT_BUS_TYPE	BUS_TYPE_8_HISPEED
+%else
+	%define XTIDE_DEFAULT_BUS_TYPE	BUS_TYPE_8_DUAL
+%endif
+
 ; ROM variables (must start at offset 0)
 CNT_ROM_BLOCKS		EQU		16	; 16 * 512B = 8kB BIOS
 istruc ROMVARS
@@ -50,7 +59,7 @@ istruc ROMVARS
 %else
 		db	" (XT)=-",STOP
 %endif
-	at	ROMVARS.szVersion,	db	"v0.1.0 (11/04/26)",STOP
+	at	ROMVARS.szVersion,	db	"v0.2.0 (11/04/26)",STOP
 
 ;---------------------------;
 ; AT Build default settings ;
@@ -81,7 +90,7 @@ istruc ROMVARS
 
 	at	ROMVARS.ideVars2+IDEVARS.wPort,			dw	300h			; Controller Command Block base port
 	at	ROMVARS.ideVars2+IDEVARS.wPortCtrl,		dw	308h			; Controller Control Block base port
-	at	ROMVARS.ideVars2+IDEVARS.bBusType,		db	BUS_TYPE_8_DUAL	; Bus type
+	at	ROMVARS.ideVars2+IDEVARS.bBusType,		db	XTIDE_DEFAULT_BUS_TYPE	; Bus type
 	at	ROMVARS.ideVars2+IDEVARS.bIRQ,			db	0				; IRQ
 	at	ROMVARS.ideVars2+IDEVARS.drvParamsMaster+DRVPARAMS.wFlags,	db	FLG_DRVPARAMS_BLOCKMODE
 	at	ROMVARS.ideVars2+IDEVARS.drvParamsSlave+DRVPARAMS.wFlags,	db	FLG_DRVPARAMS_BLOCKMODE
@@ -100,7 +109,7 @@ istruc ROMVARS
 
 	at	ROMVARS.ideVars0+IDEVARS.wPort,			dw	300h			; Controller Command Block base port
 	at	ROMVARS.ideVars0+IDEVARS.wPortCtrl,		dw	308h			; Controller Control Block base port
-	at	ROMVARS.ideVars0+IDEVARS.bBusType,		db	BUS_TYPE_8_DUAL	; Bus type
+	at	ROMVARS.ideVars0+IDEVARS.bBusType,		db	XTIDE_DEFAULT_BUS_TYPE	; Bus type
 	at	ROMVARS.ideVars0+IDEVARS.bIRQ,			db	0				; IRQ
 	at	ROMVARS.ideVars0+IDEVARS.drvParamsMaster+DRVPARAMS.wFlags,	db	FLG_DRVPARAMS_BLOCKMODE
 	at	ROMVARS.ideVars0+IDEVARS.drvParamsSlave+DRVPARAMS.wFlags,	db	FLG_DRVPARAMS_BLOCKMODE
@@ -146,6 +155,7 @@ iend
 %include "HError.asm"			; For error checking
 %include "HPIO.asm"				; For PIO transfers
 %include "HIRQ.asm"				; For IRQ handling
+%include "HIdeIO.asm"			; For IDE register access (HI-SPEED mode)
 %include "HStatus.asm"			; For reading hard disk status
 %include "HDrvSel.asm"			; For selecting drive to access
 %include "HCommand.asm"			; For outputting command and parameters
