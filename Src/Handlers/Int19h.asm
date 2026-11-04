@@ -70,7 +70,9 @@ Int19h_SimpleBootLoader:
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 Int19h_TryToLoadBootSectorFromDL:
+%ifdef MODULE_BOOT_MENU				; Only failures are printed without it
 	call	BootPrint_TryToBootFromDL
+%endif
 	call	Int19h_LoadFirstSectorFromDL
 	jc		SHORT .FailedToLoadFirstSector
 
@@ -79,7 +81,9 @@ Int19h_TryToLoadBootSectorFromDL:
 	cmp		WORD [es:bx+510], 0AA55h		; Valid boot sector?
 	jne		SHORT .FirstHardDiskSectorNotBootable
 .AlwaysBootFromFloppyDriveForBooterGames:
+%ifdef MODULE_BOOT_MENU
 	call	BootPrint_BootSectorLoaded
+%endif
 	stc
 	ret
 .FailedToLoadFirstSector:

@@ -148,9 +148,14 @@ second while waiting (v0.2.0 made about 780), and about 130 per arrow key
 ### Building without the boot menu
 
 The `_nomenu` images (built with `NO_BOOT_MENU` defined) leave the boot
-menu out completely, which frees about 2.6 KB. They boot the way the
+menu out completely, which frees about 2.8 KB. They boot the way the
 system BIOS does: from A: if it holds a bootable disk, otherwise from the
-first hard disk. There is no prompt and no wait.
+first hard disk. There is no prompt and no wait, and nothing is printed
+after drive detection unless the hard disk can't be booted. Then one line
+gives the reason, for example `Can't boot hard disk 80h: error 20h` (the
+INT 13h error code) or `Can't boot hard disk 80h: no boot sector`, before
+the system's INT 18h handler takes over. An empty or unbootable A: is
+normal and isn't reported.
 
 Settings that only the boot menu uses (default boot drive, menu height,
 selection timeout, ROM Boot item, drive info, drive number translation)

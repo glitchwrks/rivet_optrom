@@ -17,6 +17,7 @@ g_szDetect:		db	"IDE %s at %x: ",STOP			; IDE Master at 1F0h:
 g_szNotFound:	db	"not found",CR,LF,STOP
 
 ; Boot loader strings
+%ifdef MODULE_BOOT_MENU
 g_szFloppyDrv:	db	"Floppy Drive",STOP
 g_szHardDrv:	db	" Hard Drive ",STOP
 g_szTryToBoot:	db	"Booting from %s %x",175,"%x ... ",STOP
@@ -24,6 +25,10 @@ g_szBootSector:	db	"Boot Sector",STOP
 g_szFound:		db	"found",STOP
 g_szSectRead:	db	"%s %s!",CR,LF,STOP
 g_szReadError:	db	"Error %x!",CR,LF,STOP
+%else	; Without the Boot Menu, only hard disk boot failures are printed
+g_szHdReadError:	db	"Can't boot hard disk %x: error %x",CR,LF,STOP
+g_szHdNotBootable:	db	"Can't boot hard disk %x: no boot sector",CR,LF,STOP
+%endif
 %ifdef MODULE_BOOT_MENU	; Strings only used by the Boot Menu
 g_sz18hCallback:db	"Boot menu callback via INT 18h",STOP
 

@@ -50,8 +50,10 @@ def patched(rom, offset, value):
 
 
 def run(rom, hispeed=False, drives=1, floppies=1, keys=(), max_ticks=300,
-        cursor_shape=None, floppy_bootable=False):
+        cursor_shape=None, floppy_bootable=False, boot_sector=True):
     d = xtemu.make_drives(drives) + [None] * (2 - drives)
+    if not boot_sector:
+        d[0].write(0, bytes(512))
     image = rom if isinstance(rom, bytes) else open(rom, 'rb').read()
     m = xtemu.Machine(image, d, hispeed, floppies, list(keys), max_ticks,
                       floppy_bootable=floppy_bootable)
@@ -125,6 +127,14 @@ def test_nomenu_image(path, hispeed):
     check(f'{name} teletype only', set(m.int10) <= {0x0E}, dict(m.int10))
     check(f'{name} no menu', 'Selection Timeout' not in m.screen.text(),
           m.screen.text())
+    check(f'{name} silent boot', 'Booting from' not in m.screen.text()
+          and "Can't boot" not in m.screen.text(), m.screen.text())
+
+    # A hard disk without a boot sector is reported before INT 18h
+    m, res = run(path, hispeed, keys=[], max_ticks=100, boot_sector=False)
+    check(f'{name} no boot sector', res == ('int18', None) and
+          "Can't boot hard disk 80h: no boot sector" in m.screen.text(),
+          (res, m.screen.text()))
 
     # A bootable disk in A: is booted first
     m, res = run(path, hispeed, keys=[], max_ticks=100, floppy_bootable=True)
