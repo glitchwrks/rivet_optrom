@@ -144,6 +144,7 @@ iend
 %include "Interrupts.asm"		; For Interrupt initialization
 %include "RamVars.asm"			; For RAMVARS initialization and access
 %include "CreateDPT.asm"		; For creating DPTs
+%include "AutoXlate.asm"		; For L-CHS geometry from partition tables
 %include "FindDPT.asm"			; For finding DPTs
 %include "AccessDPT.asm"		; For accessing DPTs
 %include "CompatibleDPT.asm"	; For creating compatible DPTs

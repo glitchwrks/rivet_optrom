@@ -203,7 +203,7 @@ to match for a disk to work, and boot, on another machine is the number
 of heads and sectors per track: DOS records them in the partition table
 and the boot sector, and DOS 6.22 boot code reads the disk using them.
 
-Each drive can use one of four modes:
+Each drive can use one of five modes:
 
 | Mode | Value | Geometry | Matches |
 |------|-------|----------|---------|
@@ -211,6 +211,7 @@ Each drive can use one of four modes:
 | `none` | 1 | The drive's own geometry, at most 1024 cylinders (504 MB) | Pre-1994 BIOSes without translation ("Normal") |
 | `assist` | 2 | Above 1024 cylinders: 63 sectors per track, 16/32/64/128/255 heads by size | XTIDE Universal BIOS 2.x (r610 and later), 486-era "LBA" BIOS setting |
 | `255` | 3 | Always 255 heads, 63 sectors per track | Later PCs, and disks partitioned by Windows or Linux tools |
+| `auto` | 4 | Heads and sectors per track from the disk's own partition table; otherwise as `rivet` | Whatever the disk was partitioned with |
 
 For the common CF cards and drives (16 heads, 63 sectors per track), the
 `rivet` and `assist` modes give the same geometry. They differ for drives
@@ -219,8 +220,16 @@ r609 (May 2021) also translated drives of 1024 cylinders or less; disks
 partitioned with those may need repartitioning, as upstream warned when
 it fixed that.
 
-The `assist` and `255` modes need a drive that supports LBA, and no user
-specified CHS. Otherwise the drive uses mode `rivet`.
+The `assist`, `255` and `auto` modes need a drive that supports LBA, and
+no user specified CHS. Otherwise the drive uses mode `rivet`.
+
+`auto` reads the MBR when the drive is detected. DOS FDISK ends partitions
+on a cylinder boundary, so a partition's end address gives the heads and
+sectors per track it was made with. An entry is only used if its start
+address gives its start LBA with that geometry, so a blank disk, a missing
+partition table, or an entry that doesn't add up all fall back to
+`rivet`. This lets one setting serve disks partitioned on different
+machines; a disk that is repartitioned is picked up at the next boot.
 
 The mode is stored per drive in the ROM header (`DRVPARAMS.bXlateMode`).
 Until the configuration program exists, `Tools/set_xlate.py` sets it in

@@ -202,6 +202,13 @@ CreateDPT_StoreLCHS:
 	jnz		SHORT .ShiftPCHStoLCHS
 	test	WORD [es:si+ATA1.wCaps], A1_wCaps_LBA
 	jz		SHORT .ShiftPCHStoLCHS
+	cmp		al, XLATE_MODE_AUTO
+	jne		SHORT .CheckForLbaAssist
+	; XLATE_MODE_AUTO: default geometry with LBA addressing (the same
+	; sectors) until AutoXlate_FromPartitionTables reads the MBR
+	or		BYTE [di+DPT.bFlags], FLG_DPT_LBAXLATE
+	jmp		SHORT .ShiftPCHStoLCHS
+.CheckForLbaAssist:
 	cmp		al, XLATE_MODE_LBA_ASSIST
 	jne		SHORT CreateDPT_StoreLbaTranslatedLCHSwith255Heads
 	cmp		BYTE [di+DPT.bPHeads], 16

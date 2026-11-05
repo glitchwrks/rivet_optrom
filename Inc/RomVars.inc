@@ -112,7 +112,9 @@ XLATE_MODE_LBA_ASSIST	EQU	2	; LBA assist above 1024 cylinders: 63 sectors, heads
 								; 16/32/64/128/255 by capacity (XUB 2.x since r610,
 								; 486-era "LBA" BIOS setting)
 XLATE_MODE_LBA_255		EQU	3	; Always 255 heads, 63 sectors (later PCs)
-XLATE_MODE_LAST			EQU	XLATE_MODE_LBA_255
+XLATE_MODE_AUTO			EQU	4	; Heads and sectors from the partition table if it
+								; has a consistent entry, else as XLATE_MODE_RIVET
+XLATE_MODE_LAST			EQU	XLATE_MODE_AUTO
 
 
 %endif ; ROMVARS_INC

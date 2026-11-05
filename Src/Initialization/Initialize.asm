@@ -3,6 +3,7 @@
 ; Created date	:	23.3.2010
 ; Last update	:	23.8.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Functions for initializing the BIOS.
 
 ; Section containing code
@@ -103,20 +104,6 @@ Initialize_AndDetectDrives:
 	LOAD_BDA_SEGMENT_TO	es, ax
 	call	Interrupts_InitializeInterruptVectors
 	call	DetectDrives_FromAllIDEControllers
-	call	CompatibleDPT_CreateForDrives80hAnd81h
-	; Fall to .ResetDetectedDrives
-
-;--------------------------------------------------------------------
-; Resets all hard disks.
-;
-; Initialize_ResetDetectedDrives
-;	Parameters:
-;		DS:		RAMVARS segment
-;	Returns:
-;		Nothing
-;	Corrupts registers:
-;		AX, BX, CX, DX, DI
-;--------------------------------------------------------------------
-;ALIGN JUMP_ALIGN
-.ResetDetectedDrives:
-	jmp		AH0h_ResetHardDisksHandledByOurBIOS
+	call	AH0h_ResetHardDisksHandledByOurBIOS
+	call	AutoXlate_FromPartitionTables	; Needs the drives reset, and must
+	jmp		CompatibleDPT_CreateForDrives80hAnd81h	; come before these tables

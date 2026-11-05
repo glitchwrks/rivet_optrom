@@ -178,6 +178,8 @@ def main(argv):
     # images boot straight into the test program; the XT and AT builds
     # take different paths (lite mode, and full mode with EBIOS)
     xlate_test.check_rom(os.path.join(build, 'rivet_xt_nomenu.bin'), FAILURES)
+    xlate_test.check_auto(os.path.join(build, 'rivet_xt_nomenu.bin'), FAILURES)
+    xlate_test.check_auto(os.path.join(build, 'rivet_at_nomenu.bin'), FAILURES)
     xlate_test.check_rom(os.path.join(build, 'rivet_at_nomenu.bin'), FAILURES,
                          maxsize_variants=(True,))   # (slow: empty AT ports)
     for f in FAILURES:

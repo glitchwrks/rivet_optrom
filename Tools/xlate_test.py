@@ -31,8 +31,9 @@ def xlate_mode_offset(rom):
         if int.from_bytes(rom[ide:ide + 2], 'little') == 0x300:
             return ide + DRVPARAMS_MASTER + DRVPARAMS_XLATE_MODE
     raise ValueError('no controller at 300h')
-RIVET, NONE, LBA_ASSIST, LBA_255 = 0, 1, 2, 3
-MODE_NAMES = {RIVET: 'rivet', NONE: 'none', LBA_ASSIST: 'assist', LBA_255: '255'}
+RIVET, NONE, LBA_ASSIST, LBA_255, AUTO = 0, 1, 2, 3, 4
+MODE_NAMES = {RIVET: 'rivet', NONE: 'none', LBA_ASSIST: 'assist', LBA_255: '255',
+              AUTO: 'auto'}
 
 RESULTS = 0x7E00              # AH=08h CX, DX, AX; then 8 bytes per read
 TABLE_OFS = 0x100             # CHS table inside the boot sector
@@ -95,11 +96,16 @@ def assemble():
 
 
 # ----- reference model of the modes (heads/SPT are what matter)
-def model(mode, c, h, s, lba=True, lba_total=None, user_chs=False):
+def model(mode, c, h, s, lba=True, lba_total=None, user_chs=False, part=None):
     """Returns (cylinders, heads, sectors per track) that AH=08h reports
-    (as counts), for the drive's P-CHS c/h/s."""
+    (as counts), for the drive's P-CHS c/h/s. part is the partition entry
+    model for AUTO: (heads, spt, consistent)."""
     total = lba_total or c * h * s
     lba_ok = lba and not user_chs
+    if mode == AUTO and lba_ok and part and part[2]:
+        ph, ps = part[0], part[1]
+        if 1 <= ph <= 255 and 1 <= ps <= 63 and total // (ph * ps):
+            return min(total // (ph * ps), 1024), ph, ps
     if mode == NONE:
         return min(c, 1024), h, s
     if mode == LBA_255 and lba_ok and total // (255 * 63) > 0:
@@ -132,14 +138,25 @@ ROMVARS_FLAGS = 0x50
 FLG_ROMVARS_MAXSIZE = 0x20
 
 
-def run_case(rom, mode, geom, lba=True, lba_total=None, maxsize=True):
+def part_entry(heads, spt, consistent=True, start=(0, 1, 1)):
+    """A DOS-style partition entry ending on a cylinder boundary."""
+    def enc(cyl, head, sect):
+        return bytes([head, sect | ((cyl >> 2) & 0xC0), cyl & 0xFF])
+    sc, sh, ss = start
+    lba = (sc * heads + sh) * spt + ss - 1 + (0 if consistent else 1)
+    return (b'\x80' + enc(sc, sh, ss) + b'\x06' + enc(5, heads - 1, spt) +
+            lba.to_bytes(4, 'little') + (6 * heads * spt - lba).to_bytes(4, 'little'))
+
+
+def run_case(rom, mode, geom, lba=True, lba_total=None, maxsize=True, part=None):
+    """part: None, or (heads, spt, consistent) for a partition entry."""
     c, h, s = geom
     image = bytearray(rom)
     image[xlate_mode_offset(rom)] = mode
     if not maxsize:
         image[ROMVARS_FLAGS] &= ~FLG_ROMVARS_MAXSIZE
     image[-1] = (-sum(image[:-1])) & 0xFF
-    lc, lh, ls = model(mode, c, h, s, lba, lba_total)
+    lc, lh, ls = model(mode, c, h, s, lba, lba_total, part=part)
     if not maxsize and lc > 1:
         lc -= 1             # Diagnostic cylinder reserved (never the only one)
     pts = addresses(lc, lh, ls)
@@ -149,6 +166,9 @@ def run_case(rom, mode, geom, lba=True, lba_total=None, maxsize=True):
         cx = ((cyl & 0xFF) << 8) | ((cyl >> 2) & 0xC0) | sect
         tbl += cx.to_bytes(2, 'little') + bytes([0, head])
     boot[TABLE_OFS:TABLE_OFS + len(tbl)] = tbl
+    if part:
+        boot[446:462] = part_entry(part[0] if part[0] <= 255 else 256, part[1], part[2]) \
+            if part[0] <= 255 else part_entry(256, part[1], part[2])
     boot[510:512] = b'\x55\xAA'
     drive = xtemu.AtaDrive('RIVET XLATE TEST', c, h, s, lba=lba,
                            lba_total=lba_total, tagged=True)
@@ -209,6 +229,35 @@ def check_rom(path, failures, reference=None, maxsize_variants=(True, False)):
                     failures.append(f'{what}: differs from reference ROM')
 
 
+AUTO_CASES = [  # (label, geometry, lba, lba_total, partition (heads, spt, consistent))
+    ('2GB card made at 255/63', (4160, 16, 63), True, None, (255, 63, True)),
+    ('512MB card made at 16/63', (993, 16, 63), True, None, (16, 63, True)),
+    ('2GB card made at 128/63', (4160, 16, 63), True, None, (128, 63, True)),
+    ('odd 2000/4/32 made at 16/63', (2000, 4, 32), True, None, (16, 63, True)),
+    ('no partition table', (1986, 16, 63), True, None, None),
+    ('inconsistent entry', (1986, 16, 63), True, None, (255, 63, False)),
+    ('no LBA, made at 255/63', (2000, 16, 32), False, None, (255, 63, True)),
+    ('20GB made at 255/63', (16383, 16, 63), True, 39070080, (255, 63, True)),
+]
+
+
+def check_auto(path, failures):
+    rom = open(path, 'rb').read()
+    name = os.path.basename(path)
+    for label, geom, lba, total, part in AUTO_CASES:
+        what = f'{name} auto {label}'
+        res, want, got, reads = run_case(rom, AUTO, geom, lba, total, part=part)
+        if res != ('int18', None):
+            failures.append(f'{what}: run ended {res}')
+            continue
+        if got != want:
+            failures.append(f'{what}: AH=08h {got}, expected {want}')
+        for chs, tag, err, lba_want in reads:
+            if err or tag != lba_want:
+                failures.append(f'{what}: CHS {chs} read LBA {tag}'
+                                f'{" (error)" if err else ""}, expected {lba_want}')
+
+
 def main(argv):
     args = argv[1:]
     reference = None
@@ -219,6 +268,7 @@ def main(argv):
     failures = []
     for path in roms:
         check_rom(path, failures, reference)
+        check_auto(path, failures)
     for f in failures:
         print('FAIL', f)
     print(f'xlate_test: {len(roms)} images, {len(failures)} failures')

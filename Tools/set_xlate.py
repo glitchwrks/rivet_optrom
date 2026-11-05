@@ -14,6 +14,8 @@ usage: set_xlate.py IMAGE CONTROLLER DRIVE MODE [-o OUTPUT]
               none   (1) no translation, at most 1024 cylinders
               assist (2) LBA assist above 1024 cylinders (XUB 2.x)
               255    (3) always 255 heads, 63 sectors (later PCs)
+              auto   (4) heads and sectors from the partition table, if it
+                         has a consistent entry; otherwise rivet
 
 Without -o the image is changed in place."""
 
@@ -22,12 +24,23 @@ import sys
 
 SIGNATURE = b'RIVET010'
 ROMVARS_SIGN = 0x10
+ROMVARS_VERSION = 0x37        # szVersion, e.g. "v0.5.0 (11/04/26)"
+FIRST_VERSION_WITH_MODES = (0, 5, 0)
 ROMVARS_IDE_CNT = 0x52
 ROMVARS_IDEVARS0 = 0x60
 IDEVARS_SIZE = 26
 DRVPARAMS = {'master': 10, 'slave': 18}
 DRVPARAMS_XLATE_MODE = 2
-MODES = {'rivet': 0, 'none': 1, 'assist': 2, '255': 3}
+MODES = {'rivet': 0, 'none': 1, 'assist': 2, '255': 3, 'auto': 4}
+FIRST_VERSION_WITH_MODE = {'auto': (0, 5, 0)}
+
+
+def image_version(image):
+    text = bytes(image[ROMVARS_VERSION:ROMVARS_VERSION + 25]).split(b' ')[0]
+    try:
+        return tuple(int(x) for x in text.lstrip(b'v').split(b'.'))
+    except ValueError:
+        return None
 
 
 def main(argv):
@@ -42,6 +55,10 @@ def main(argv):
     image = bytearray(open(a.image, 'rb').read())
     if image[:2] != b'\x55\xAA' or image[ROMVARS_SIGN:ROMVARS_SIGN + 8] != SIGNATURE:
         sys.exit(f'{a.image}: not a Rivet ({SIGNATURE.decode()}) image')
+    version = image_version(image)
+    if version is None or version < FIRST_VERSION_WITH_MODES:
+        sys.exit(f'{a.image}: Rivet version {version} has no translation modes '
+                 f'(needs v0.5.0 or later)')
     if a.controller >= image[ROMVARS_IDE_CNT]:
         sys.exit(f'{a.image}: only {image[ROMVARS_IDE_CNT]} controller(s) configured')
     ide = ROMVARS_IDEVARS0 + a.controller * IDEVARS_SIZE
