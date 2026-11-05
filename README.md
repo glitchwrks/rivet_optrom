@@ -10,7 +10,7 @@ BIOS, so please don't report Rivet issues upstream.
 ## Status
 
 Early days. Rivet is based on the XTIDE Universal BIOS v1.1.5 code, with a
-new identity. The boot screen shows `-=Rivet Option ROM (XT)=-` (or
+new identity. The boot screen shows `Rivet Option ROM (XT)` (or
 `(XT+)` / `(AT)`) and the Rivet version, and the ROM carries the
 configuration signature `RIVET010` (not upstream's `XTIDE110`).
 
@@ -24,6 +24,7 @@ Changes from v1.1.5:
 * v0.4.0: images can be built without the boot menu, booting in BIOS
   order instead; in the boot menu, any keypress stops the selection
   timeout (see below)
+* v0.4.1: the ROM title drops the `-=` `=-` decoration
 
 **Configuration:** the XTIDE Universal BIOS configurator (XTIDECFG) only
 recognizes ROMs with its own signature, so it can't configure or flash
