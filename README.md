@@ -244,6 +244,33 @@ sector every CHS address reaches, against a model of each mode
 (`Tools/xlate_test.py`). With the default mode, the geometry and sector
 mapping are the same as v1.1.5's.
 
+## RDTEST: disk read checkout
+
+`RDTEST.COM` (`make rdtest`, source in `Tools/rdtest/`) checks that a PC
+reads a disk correctly through its BIOS: XT-IDE board, connector, cable,
+card and ROM together. It reads a range of sectors several times through
+INT 13h and compares a checksum of each block with values made from a
+known-good image of the same disk:
+
+1. Make or pick a disk image, and write it to the card.
+2. `python3 Tools/rdtest_cfg.py card.img` makes `RDTEST.CFG` for it: the
+   sector range (by default everything up to the last non-zero sector)
+   and the checksums, plus the heads and sectors per track from its
+   partition table.
+3. Boot the PC under test from a floppy with `RDTEST.COM` and
+   `RDTEST.CFG`, and run `RDTEST` (or `RDTEST other.cfg`).
+
+Each block prints `.` if it matches, `X` if the data differs and `E` on
+a read error. Errors that come and go between passes point at a
+marginal connection. RDTEST also warns if the BIOS reports a different
+geometry than the image was made with, which means DOS on that disk
+won't work in this PC with the current translation mode. Errorlevel is
+0 if everything matched, 1 on bad data or read errors, 2 for a bad
+configuration and 3 if the configuration file isn't found.
+
+`Tools/disk_geometry.py` shows the geometry a disk or image was
+partitioned with.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for how to report bugs and submit

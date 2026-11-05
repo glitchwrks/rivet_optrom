@@ -17,6 +17,7 @@
 # nomenu    All builds without the Boot Menu, booting in BIOS order           #
 #           (*_nomenu.bin)                                                    #
 # check     Builds, then checks images against Tools/baseline.sha256          #
+# rdtest    Builds the RDTEST.COM disk read checkout tool into Build/         #
 # emutest   Builds, then runs behaviour tests on an emulated XT (needs        #
 #           Python unicorn package)                                           #
 # clean     Removes Build/                                                    #
@@ -128,7 +129,7 @@ ASFLAGS = -f bin $(DEFS) $(IHEADERS) -Worphan-labels -O9
 # Build process. Actual work is done here. #
 ############################################
 
-.PHONY: all build at xtplus xt hispeed nomenu check emutest clean
+.PHONY: all build at xtplus xt hispeed nomenu rdtest check emutest clean
 
 CPUS = at xtp xt
 VARIANTS = $(foreach c,$(CPUS),$(c) $(c)_hs)
@@ -148,6 +149,11 @@ nomenu: $(foreach v,$(VARIANTS),$(TARGET)_$(v)_nomenu.bin)
 $(BUILD_DIR):
 	mkdir -p $@
 
+rdtest: $(BUILD_DIR)/RDTEST.COM
+
+$(BUILD_DIR)/RDTEST.COM: Tools/rdtest/rdtest.asm | $(BUILD_DIR)
+	$(AS) -f bin -o $@ $<
+
 $(TARGET)_%.bin: $(DEPS) Tools/checksum.py | $(BUILD_DIR)
 	$(AS) $(ASFLAGS) $(call image_defs,$*) -o $@ $(SRC_ASM)
 	$(CHECKSUM) $@
@@ -155,8 +161,9 @@ $(TARGET)_%.bin: $(DEPS) Tools/checksum.py | $(BUILD_DIR)
 check: build
 	$(PYTHON) Tools/check_baseline.py -v Tools/baseline.sha256
 
-emutest: build
+emutest: build rdtest
 	$(PYTHON) Tools/emu_test.py $(BUILD_DIR)
+	$(PYTHON) Tools/rdtest_test.py $(BUILD_DIR)/rivet_xt_nomenu.bin
 
 clean:
 	rm -rf $(BUILD_DIR)

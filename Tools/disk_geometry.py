@@ -57,13 +57,20 @@ def main(argv):
                   f'{hidden} hidden sectors')
             if (bpb_heads, bpb_spt) != (heads, spt):
                 print('  Note: BPB and partition table geometry differ')
+        dev.seek(0, 2)
+        total = dev.tell() // 512
     print()
-    print('Rivet mode to use: whichever gives these heads/sectors for the card.')
-    print('  255 heads, 63 sectors  -> 255')
-    print('  16/32/64/128 heads, 63 sectors -> assist (or rivet; both give this')
-    print('                            for 16-head, 63-sector cards)')
-    print('  anything else           -> rivet or none: compare with the card\'s')
-    print('                            own geometry (hdparm -I, "default" CHS)')
+    print(f'Disk size: {total} sectors ({total * 512 / 2**30:.1f} GiB)')
+    print('Rivet translation mode: auto picks up the geometry above by itself.')
+    if found and (found[0][1], found[0][2]) == (255, 63) and total >= 16383 * 16 * 63:
+        print('This disk is over 8 GB, so rivet (and XUB v1.1.5) also give')
+        print('255 heads, 63 sectors: any mode except none works.')
+    elif found and (found[0][1], found[0][2]) == (255, 63):
+        print('For 255 heads, 63 sectors on a disk of 8 GB or less: 255 (or auto).')
+        print('rivet / XUB v1.1.5 would use fewer heads, so DOS would not work.')
+    else:
+        print('Other geometries: rivet, none or assist, whichever gives these')
+        print('heads/sectors for the drive\'s own geometry (hdparm -I).')
     return 0
 
 
