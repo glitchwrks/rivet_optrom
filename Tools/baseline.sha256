@@ -1,6 +1,6 @@
 # SHA-256 of build outputs that must match known-good images.
 #
-# Rivet v0.4.0: XTIDE Universal BIOS v1.1.5 plus XTIDE HI-SPEED mode
+# Rivet v0.4.1: XTIDE Universal BIOS v1.1.5 plus XTIDE HI-SPEED mode
 # (A0/A3 swapped, "Chuck mod") support, a rewritten boot menu, and the
 # option to build without the boot menu.
 # *_hs.bin images default to HI-SPEED mode; the others default to the
@@ -13,15 +13,15 @@
 #
 # Any change to these hashes must come with an intended change to the ROM,
 # made in the same commit, and the commit message must say why.
-56a2e85c070dd6680fdcbde32c4eb07e91d4934413f47bcb07ac2f83d2395cc6  Build/rivet_xt.bin
-538d678ffa405bb00f8cd5a25681e1c274798f73d97f70b56a1799997a6bf73d  Build/rivet_xtp.bin
-a7ca350f3a55a0e0b047572b31a90fe712c2770e89e1a29fc8d3c3952fc95964  Build/rivet_at.bin
-d04585953cf2f1dee34b9d44a185762c728fd18c925b3b98a642a43d4ce72021  Build/rivet_xt_hs.bin
-618800fe4065bb68388420292a8e2d2326a84e64b5a0f9449526c5669e53f3ee  Build/rivet_xtp_hs.bin
-e8e300392a403a859c16c36b6f2b6ab5b5032a531dc34acab890c707d154c0de  Build/rivet_at_hs.bin
-1f145f814074b99ac35502ec221be45d6c9a7b783c15d699da501c76c31e011c  Build/rivet_xt_nomenu.bin
-fe5dc8c975b892503802971907569d288f8ebe72e2fd1ff3f29ab5a48430a971  Build/rivet_xtp_nomenu.bin
-6b1395a525fc22276923d92aa744bf5e520169032276c6284250542e59c0cdb2  Build/rivet_at_nomenu.bin
-f0710085407a1c108c46e38918e05588bc30b2680b103f0247b9aa1cfe8d2506  Build/rivet_xt_hs_nomenu.bin
-4c1f71528e4a5f72c4912a2e5040a6032f2fd4643b9a37d92e4e200ca23a73b0  Build/rivet_xtp_hs_nomenu.bin
-4ff0d553ee5aaf8c0d1551f6565668830dfcb5e414704efdebc9c83a29b0aba1  Build/rivet_at_hs_nomenu.bin
+03fb2c8e731c7bb569e34d3645e2e4504781aa774e1040209681a708ae9fde78  Build/rivet_xt.bin
+2f353fbac360b80a11c8e47a7dd2e15358bfc9a7716f211080a4896e811f9fc0  Build/rivet_xtp.bin
+4239c526f72dcb1391c960ce87dcd22f4c476c2c3b91a5105e5091f8746f6b93  Build/rivet_at.bin
+ba02c754051edecd68752e5fa41e5f5159ee1a160efe110365f968ee7054303a  Build/rivet_xt_hs.bin
+91dcf13da8e947064b172f92e39cd702b096ff67f5c64c9e3b3638c4aae1d559  Build/rivet_xtp_hs.bin
+5f2fbab5f5de182d6e8f7185d239ab7c7922762625085218daf0a16f380273fd  Build/rivet_at_hs.bin
+73ad9f571ebefb818942d8e21cf662fdfcfe44b0e8e531edc20bee800cec45c3  Build/rivet_xt_nomenu.bin
+35cf776aad4a7e1cb20ba6bfd2193edd37084881f4521415d7d2b79dcaa64d2e  Build/rivet_xtp_nomenu.bin
+0ad170b1784074de51653a56981a44e4f12dfad89ca3389712e11fe671aa7cc4  Build/rivet_at_nomenu.bin
+597b181fc33e18fc67565f8b04727f837ff1f416beacef834ddb04336faf647f  Build/rivet_xt_hs_nomenu.bin
+0dfed366904fe0f76afc2f3a61389360bf05f78cb434f0762694661202fe5436  Build/rivet_xtp_hs_nomenu.bin
+a09d260123a97d8814ad8d8bbd2a5911e9d716979fcb164c38655602884935c7  Build/rivet_at_hs_nomenu.bin

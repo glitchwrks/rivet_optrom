@@ -63,15 +63,15 @@ istruc ROMVARS
 	at	ROMVARS.rgbSign,	db	"RIVET010"		; Signature for configuration program
 											; (change only when ROMVARS layout changes)
 	at	ROMVARS.szTitle
-		db	"-=Rivet Option ROM"
+		db	"Rivet Option ROM"
 %ifdef USE_AT
-		db	" (AT)=-",STOP
+		db	" (AT)",STOP
 %elifdef USE_186
-		db	" (XT+)=-",STOP
+		db	" (XT+)",STOP
 %else
-		db	" (XT)=-",STOP
+		db	" (XT)",STOP
 %endif
-	at	ROMVARS.szVersion,	db	"v0.4.0 (11/04/26)",STOP
+	at	ROMVARS.szVersion,	db	"v0.4.1 (11/04/26)",STOP
 
 ;---------------------------;
 ; AT Build default settings ;
