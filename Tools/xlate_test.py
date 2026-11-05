@@ -99,11 +99,13 @@ def assemble():
 def model(mode, c, h, s, lba=True, lba_total=None, user_chs=False, part=None):
     """Returns (cylinders, heads, sectors per track) that AH=08h reports
     (as counts), for the drive's P-CHS c/h/s. part is the partition entry
-    model for AUTO: (heads, spt, consistent)."""
+    model for AUTO: see entries()."""
     total = lba_total or c * h * s
     lba_ok = lba and not user_chs
-    if mode == AUTO and lba_ok and part and part[2]:
-        ph, ps = part[0], part[1]
+    # AUTO takes the first used entry whose start CHS gives its start LBA
+    good = [e for e in entries(part) if e[3] and e[2]] if mode == AUTO and lba_ok else []
+    if good:
+        ph, ps = good[0][0], good[0][1]
         if 1 <= ph <= 255 and 1 <= ps <= 63 and total // (ph * ps):
             return min(total // (ph * ps), 1024), ph, ps
     if mode == NONE:
@@ -138,18 +140,27 @@ ROMVARS_FLAGS = 0x50
 FLG_ROMVARS_MAXSIZE = 0x20
 
 
-def part_entry(heads, spt, consistent=True, start=(0, 1, 1)):
+def entries(part):
+    """Partition entries as (heads, spt, consistent, type): part is None,
+    one (heads, spt, consistent[, type]) or a list of them."""
+    if not part:
+        return []
+    return [tuple(e) + (6,) * (4 - len(e))
+            for e in (part if isinstance(part, list) else [part])]
+
+
+def part_entry(heads, spt, consistent=True, start=(0, 1, 1), ptype=6):
     """A DOS-style partition entry ending on a cylinder boundary."""
     def enc(cyl, head, sect):
         return bytes([head, sect | ((cyl >> 2) & 0xC0), cyl & 0xFF])
     sc, sh, ss = start
     lba = (sc * heads + sh) * spt + ss - 1 + (0 if consistent else 1)
-    return (b'\x80' + enc(sc, sh, ss) + b'\x06' + enc(5, heads - 1, spt) +
+    return (b'\x80' + enc(sc, sh, ss) + bytes([ptype]) + enc(5, heads - 1, spt) +
             lba.to_bytes(4, 'little') + (6 * heads * spt - lba).to_bytes(4, 'little'))
 
 
 def run_case(rom, mode, geom, lba=True, lba_total=None, maxsize=True, part=None):
-    """part: None, or (heads, spt, consistent) for a partition entry."""
+    """part: partition entries, see entries()."""
     c, h, s = geom
     image = bytearray(rom)
     image[xlate_mode_offset(rom)] = mode
@@ -166,9 +177,8 @@ def run_case(rom, mode, geom, lba=True, lba_total=None, maxsize=True, part=None)
         cx = ((cyl & 0xFF) << 8) | ((cyl >> 2) & 0xC0) | sect
         tbl += cx.to_bytes(2, 'little') + bytes([0, head])
     boot[TABLE_OFS:TABLE_OFS + len(tbl)] = tbl
-    if part:
-        boot[446:462] = part_entry(part[0] if part[0] <= 255 else 256, part[1], part[2]) \
-            if part[0] <= 255 else part_entry(256, part[1], part[2])
+    for n, (ph, ps, cons, ptype) in enumerate(entries(part)):
+        boot[446 + 16 * n:462 + 16 * n] = part_entry(min(ph, 256), ps, cons, ptype=ptype)
     boot[510:512] = b'\x55\xAA'
     drive = xtemu.AtaDrive('RIVET XLATE TEST', c, h, s, lba=lba,
                            lba_total=lba_total, tagged=True)
@@ -238,6 +248,11 @@ AUTO_CASES = [  # (label, geometry, lba, lba_total, partition (heads, spt, consi
     ('inconsistent entry', (1986, 16, 63), True, None, (255, 63, False)),
     ('no LBA, made at 255/63', (2000, 16, 32), False, None, (255, 63, True)),
     ('20GB made at 255/63', (16383, 16, 63), True, 39070080, (255, 63, True)),
+    ('64MB 490/8/32 card made at 16/63', (490, 8, 32), True, None, (16, 63, True)),
+    ('first entry inconsistent, second used', (1986, 16, 63), True, None,
+     [(128, 63, False), (255, 63, True)]),
+    ('unused entry skipped', (1986, 16, 63), True, None,
+     [(128, 63, True, 0), (255, 63, True)]),
 ]
 
 
