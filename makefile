@@ -17,7 +17,8 @@
 # nomenu    All builds without the Boot Menu, booting in BIOS order           #
 #           (*_nomenu.bin)                                                    #
 # check     Builds, then checks images against Tools/baseline.sha256          #
-# rdtest    Builds the RDTEST.COM disk read checkout tool into Build/         #
+# rdtest    Builds the RDTEST.COM disk read checkout tool and RDMKCFG.COM     #
+#           (makes its configuration from a disk) into Build/                 #
 # emutest   Builds, then runs behaviour tests on an emulated XT (needs        #
 #           Python unicorn package)                                           #
 # clean     Removes Build/                                                    #
@@ -149,10 +150,13 @@ nomenu: $(foreach v,$(VARIANTS),$(TARGET)_$(v)_nomenu.bin)
 $(BUILD_DIR):
 	mkdir -p $@
 
-rdtest: $(BUILD_DIR)/RDTEST.COM
+rdtest: $(BUILD_DIR)/RDTEST.COM $(BUILD_DIR)/RDMKCFG.COM
 
-$(BUILD_DIR)/RDTEST.COM: Tools/rdtest/rdtest.asm | $(BUILD_DIR)
-	$(AS) -f bin -o $@ $<
+$(BUILD_DIR)/RDTEST.COM: Tools/rdtest/rdtest.asm Tools/rdtest/common.inc | $(BUILD_DIR)
+	$(AS) -f bin -ITools/rdtest/ -o $@ $<
+
+$(BUILD_DIR)/RDMKCFG.COM: Tools/rdtest/rdmkcfg.asm Tools/rdtest/common.inc | $(BUILD_DIR)
+	$(AS) -f bin -ITools/rdtest/ -o $@ $<
 
 $(TARGET)_%.bin: $(DEPS) Tools/checksum.py | $(BUILD_DIR)
 	$(AS) $(ASFLAGS) $(call image_defs,$*) -o $@ $(SRC_ASM)

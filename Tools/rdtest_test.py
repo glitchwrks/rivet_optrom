@@ -2,11 +2,17 @@
 # Rivet: tests for RDTEST.COM and rdtest_cfg.py on the emulated XT.
 # Copyright (C) 2026 Glitch Works, LLC
 # Released under the GNU General Public License, version 2 only.
-"""Builds RDTEST.COM, makes a configuration with rdtest_cfg.py from a
-synthetic disk image, and runs RDTEST.COM under a minimal DOS (the five
-INT 21h functions it uses) on the emulated XT with a Rivet image. Checks
-a clean disk, corrupted sectors, a geometry mismatch warning, a range
-that crosses cylinders, and a missing configuration file."""
+"""Builds RDTEST.COM and RDMKCFG.COM, and runs them under a minimal DOS
+(the INT 21h functions they use) on the emulated XT with a Rivet image.
+
+RDTEST: checked against configurations from rdtest_cfg.py made from a
+synthetic disk image: a clean disk, corrupted sectors, a geometry
+mismatch warning, a range that crosses cylinders, a missing or bad
+configuration file.
+
+RDMKCFG: its configuration must hold the same values as rdtest_cfg.py's
+for the same disk (default range and switches), must pass RDTEST on the
+same disk, and a read error must leave no file."""
 
 import os
 import random
@@ -27,20 +33,34 @@ PSP = 0x1000                     # Segment the .COM runs in
 
 
 class DosMachine(xtemu.Machine):
-    """Just enough DOS for RDTEST.COM."""
+    """Just enough DOS for RDTEST.COM and RDMKCFG.COM."""
     files = {}
+
+    def _name_at_dsdx(self):
+        a, name = self.r(UC_X86_REG_DS) * 16 + self.r(UC_X86_REG_DX), b''
+        while self.mu.mem_read(a, 1) != b'\0':
+            name += bytes(self.mu.mem_read(a, 1))
+            a += 1
+        return name.decode().upper()
 
     def _int21(self):
         ah = self.r(UC_X86_REG_AX) >> 8
         ds = self.r(UC_X86_REG_DS)
         if ah == 0x02:
             self.screen.teletype(self.r(UC_X86_REG_DL))
+        elif ah == 0x3C:
+            self._writing = self._name_at_dsdx()
+            self.files[self._writing] = b''
+            self.w(UC_X86_REG_AX, 6)
+            self._ret_cf(False)
+        elif ah == 0x40:
+            n = self.r(UC_X86_REG_CX)
+            self.files[self._writing] += bytes(
+                self.mu.mem_read(ds * 16 + self.r(UC_X86_REG_DX), n))
+            self.w(UC_X86_REG_AX, n)
+            self._ret_cf(False)
         elif ah == 0x3D:
-            a, name = ds * 16 + self.r(UC_X86_REG_DX), b''
-            while self.mu.mem_read(a, 1) != b'\0':
-                name += bytes(self.mu.mem_read(a, 1))
-                a += 1
-            data = self.files.get(name.decode().upper())
+            data = self.files.get(self._name_at_dsdx())
             if data is None:
                 self.w(UC_X86_REG_AX, 2)
                 self._ret_cf(True)
@@ -62,18 +82,20 @@ class DosMachine(xtemu.Machine):
             self.mu.emu_stop()
 
 
-def build_com(tmp):
-    out = os.path.join(tmp, 'RDTEST.COM')
-    subprocess.run(['nasm', '-f', 'bin', '-o', out,
-                    os.path.join(HERE, 'rdtest', 'rdtest.asm')], check=True)
+def build_com(tmp, name='rdtest'):
+    out = os.path.join(tmp, name.upper() + '.COM')
+    subprocess.run(['nasm', '-f', 'bin', '-I' + os.path.join(HERE, 'rdtest') + os.sep,
+                    '-o', out, os.path.join(HERE, 'rdtest', name + '.asm')], check=True)
     return open(out, 'rb').read()
 
 
-def make_image(tmp):
+def make_image(tmp, nsect=40000, data_until=None):
     """A 16383/16/63 drive image: an MBR with a 255/63 partition, then
-    pseudo-random data across the first 40000 sectors."""
+    pseudo-random data (up to data_until, zeros after that)."""
     rnd = random.Random(5150)
-    sectors = [bytes(rnd.getrandbits(8) for _ in range(512)) for _ in range(40000)]
+    data_until = data_until or nsect
+    sectors = [bytes(rnd.getrandbits(8) for _ in range(512)) if n < data_until
+               else bytes(512) for n in range(nsect)]
     mbr = bytearray(512)
     mbr[446:462] = xlate_test.part_entry(255, 63)
     mbr[510:512] = b'\x55\xAA'
@@ -90,7 +112,8 @@ def make_cfg(image, tmp, *args):
     return open(out, 'rb').read()
 
 
-def run_com(rom_path, com, sectors, files, cmdline='', corrupt=(), mode=0):
+def run_com(rom_path, com, sectors, files, cmdline='', corrupt=(), mode=0,
+            bad=()):
     rom = bytearray(open(rom_path, 'rb').read())
     rom[xlate_test.xlate_mode_offset(rom)] = mode
     rom[-1] = 0
@@ -100,7 +123,8 @@ def run_com(rom_path, com, sectors, files, cmdline='', corrupt=(), mode=0):
         if n in corrupt:
             s = bytes([s[0] ^ 0x80]) + s[1:]
         drive.write(n, s)
-    m = DosMachine(bytes(rom), [drive, None], False, 1, [], 20000)
+    drive.bad = set(bad)
+    m = DosMachine(bytes(rom), [drive, None], False, 1, [], 60000)
     m.files = files
     res = m.boot()
     assert res == ('boot', 0x80), res
@@ -116,7 +140,16 @@ def run_com(rom_path, com, sectors, files, cmdline='', corrupt=(), mode=0):
     m.result = None
     res = m._run()
     text = m.screen.text()
-    return res, text[text.find('RDTEST disk'):]
+    for title in ('RDTEST disk', 'RDMKCFG'):
+        if title in text:
+            return res, text[text.find(title):]
+    return res, text
+
+
+def cfg_values(text):
+    """Configuration lines without comments, for comparing generators."""
+    lines = text.decode().replace('\r', '').split('\n')
+    return [ln for ln in lines if ln and not ln.startswith(';')]
 
 
 def main(argv):
@@ -161,6 +194,34 @@ def main(argv):
         bad = cfg.replace(b'COUNT=2048', b'COUNT=1900')   # 30 blocks, 32 SUMs
         res, out = run_com(rom, com, sectors, {'RDTEST.CFG': bad})
         check('sum count check', res == ('exit', 2) and 'number of SUM' in out, (res, out))
+
+        # ----- RDMKCFG
+        mk = build_com(tmp, 'rdmkcfg')
+        image2, sectors2 = make_image(tmp, nsect=4000, data_until=3000)
+        files = {}
+        res, out = run_com(rom, mk, sectors2, files)
+        made = files.get('RDTEST.CFG', b'')
+        want = make_cfg(image2, tmp)
+        check('rdmkcfg default', res == ('exit', 0) and
+              cfg_values(made) == cfg_values(want), (res, out, made[:300], want[:300]))
+        res, out = run_com(rom, com, sectors2, {'RDTEST.CFG': made})
+        check('rdmkcfg config passes rdtest', res == ('exit', 0), (res, out))
+
+        files = {}
+        res, out = run_com(rom, mk, sectors2, files,
+                           cmdline='/s:100 /C:1000 /b:32 /p:2 TEST.CFG')
+        want = make_cfg(image2, tmp, '--start', '100', '--count', '1000',
+                        '--block', '32', '--passes', '2')
+        check('rdmkcfg switches', res == ('exit', 0) and
+              cfg_values(files.get('TEST.CFG', b'')) == cfg_values(want),
+              (res, out, files.get('TEST.CFG', b'')[:300]))
+
+        files = {}
+        res, out = run_com(rom, mk, sectors2, files, bad={1500})
+        check('rdmkcfg read error', res == ('exit', 1) and not files, (res, out))
+
+        res, out = run_com(rom, mk, sectors2, {}, cmdline='/x')
+        check('rdmkcfg bad switch', res == ('exit', 2) and 'usage' in out, (res, out))
 
     for f in failures:
         print('FAIL', f)

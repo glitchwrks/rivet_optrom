@@ -111,14 +111,8 @@ run_pass:
 	mov	byte [blk_err], 1		; Count it, keep going
 	jmp	.next_sect
 .sum:
-	mov	si, buf
-	mov	cx, 256
 	mov	bx, [cksum]
-.sum_loop:
-	lodsw
-	rol	bx, 1
-	add	bx, ax
-	loop	.sum_loop
+	call	sum_sector
 	mov	[cksum], bx
 .next_sect:
 	add	word [lba], 1
@@ -170,100 +164,11 @@ list_bad_blocks:
 	ret
 
 ;--------------------------------------------------------------------
-; Reads LBA [lba] into buf. CF set on error (message printed).
-;--------------------------------------------------------------------
-read_lba:
-	; Cylinder/head/sector from the BIOS geometry
-	mov	ax, [lba+2]
-	xor	dx, dx
-	div	word [heads_x_spt]		; High word first
-	test	ax, ax
-	jnz	.beyond
-	mov	ax, [lba]
-	div	word [heads_x_spt]		; AX = cylinder, DX = rest
-	cmp	ax, 1023
-	ja	.beyond
-	mov	cx, ax				; Cylinder
-	mov	ax, dx
-	div	byte [bios_spt]			; AL = head, AH = sector - 1
-	mov	dh, al
-	xchg	ch, cl				; CH = cylinder bits 7-0
-	ror	cl, 1
-	ror	cl, 1				; Cylinder bits 9-8 to CL 7-6
-	and	cl, 0C0h
-	inc	ah
-	or	cl, ah
-	mov	dl, [drive]
-	mov	bx, buf
-	mov	ax, 0201h
-	push	es
-	push	ds
-	pop	es
-	int	13h
-	pop	es
-	jc	.error
-	ret
-.error:
-	push	ax
-	mov	di, msg_rderr
-	call	puts
-	call	put_lba
-	mov	di, msg_status
-	call	puts
-	pop	ax
-	mov	al, ah
-	call	puthex8
-	mov	al, 'h'
-	call	putc
-	call	crlf
-	stc
-	ret
-.beyond:
-	mov	di, msg_beyond
-	call	puts
-	call	put_lba
-	call	crlf
-	stc
-	ret
-
-;--------------------------------------------------------------------
 ; Geometry from INT 13h AH=08h, compared with the configuration
 ;--------------------------------------------------------------------
 check_geometry:
-	mov	dl, [drive]
-	mov	ah, 08h
-	push	es
-	int	13h
-	pop	es
-	jnc	.got
-	mov	di, msg_geofail
-	call	puts
-	stc
-	ret
-.got:
-	mov	al, cl
-	and	al, 3Fh
-	mov	[bios_spt], al
-	mov	al, dh
-	xor	ah, ah
-	inc	ax
-	mov	[bios_heads], ax
-	mov	di, msg_geo
-	call	puts
-	mov	ax, [bios_heads]
-	call	putdec16
-	mov	al, '/'
-	call	putc
-	mov	al, [bios_spt]
-	xor	ah, ah
-	call	putdec16
-	call	crlf
-	mov	al, [bios_spt]
-	test	al, al
-	jz	.bad
-	xor	ah, ah
-	mul	word [bios_heads]		; Heads 1...256
-	mov	[heads_x_spt], ax
+	call	get_bios_geometry
+	jc	.r
 	; Compare with the configuration, if it has a geometry
 	cmp	word [cfg_heads], 0
 	je	.ok
@@ -286,12 +191,7 @@ check_geometry:
 	call	puts
 .ok:
 	clc
-	ret
-.bad:
-	mov	di, msg_geofail
-	call	puts
-	stc
-	ret
+.r:	ret
 
 ;--------------------------------------------------------------------
 ; Configuration
@@ -499,19 +399,6 @@ match_key:
 	or	al, 1				; ZF = 0
 	ret
 
-skip_blanks:
-	cmp	si, [text_end]
-	jae	.done
-	cmp	byte [si], ' '
-	je	.next
-	cmp	byte [si], 9
-	jne	.done
-.next:
-	inc	si
-	jmp	skip_blanks
-.done:
-	ret
-
 ; Value handlers: SI at the value. CF on error.
 val_drive:
 	call	get_hex
@@ -592,171 +479,6 @@ val_sum:
 	clc
 .r:	ret
 
-; Hex number at SI to AX (at least one digit). CF on error.
-get_hex:
-	call	skip_blanks
-	xor	dx, dx
-	xor	cx, cx				; Digit count
-.digit:
-	cmp	si, [text_end]
-	jae	.end
-	mov	al, [si]
-	sub	al, '0'
-	cmp	al, 9
-	jbe	.add
-	mov	al, [si]
-	and	al, ~20h
-	sub	al, 'A'
-	cmp	al, 5
-	ja	.end
-	add	al, 10
-.add:
-	push	cx
-	mov	cl, 4
-	shl	dx, cl
-	pop	cx
-	or	dl, al
-	inc	si
-	inc	cx
-	jmp	.digit
-.end:
-	mov	ax, dx
-	cmp	cx, 1
-	jb	.r				; CF set if no digits
-	clc
-.r:	ret
-
-; Decimal number at SI to DX:AX. CF on error (no digits).
-get_dec32:
-	call	skip_blanks
-	xor	ax, ax
-	xor	dx, dx
-	xor	cx, cx
-.digit:
-	cmp	si, [text_end]
-	jae	.end
-	mov	bl, [si]
-	sub	bl, '0'
-	cmp	bl, 9
-	ja	.end
-	; DX:AX = DX:AX * 10 + BL
-	push	bx
-	push	cx
-	mov	bx, ax
-	mov	cx, dx
-	shl	ax, 1
-	rcl	dx, 1				; * 2
-	shl	ax, 1
-	rcl	dx, 1				; * 4
-	add	ax, bx
-	adc	dx, cx				; * 5
-	shl	ax, 1
-	rcl	dx, 1				; * 10
-	pop	cx
-	pop	bx
-	xor	bh, bh
-	add	ax, bx
-	adc	dx, 0
-	inc	si
-	inc	cx
-	jmp	.digit
-.end:
-	cmp	cx, 1
-	jb	.r
-	clc
-.r:	ret
-
-;--------------------------------------------------------------------
-; Output: DOS (redirectable) or BIOS teletype in the BOOT build
-;--------------------------------------------------------------------
-putc:
-	push	ax
-	push	dx
-%ifdef BOOT
-	push	bx
-	mov	ah, 0Eh
-	xor	bx, bx
-	int	10h
-	pop	bx
-%else
-	mov	dl, al
-	mov	ah, 02h
-	int	21h
-%endif
-	pop	dx
-	pop	ax
-	ret
-puts:						; DI = zero-terminated string
-	mov	al, [di]
-	test	al, al
-	jz	.done
-	call	putc
-	inc	di
-	jmp	puts
-.done:
-	ret
-crlf:
-	mov	al, 13
-	call	putc
-	mov	al, 10
-	jmp	putc
-put_lba:
-	mov	ax, [lba]
-	mov	dx, [lba+2]
-puthex32:					; DX:AX
-	push	ax
-	mov	ax, dx
-	call	puthex16
-	pop	ax
-puthex16:
-	push	ax
-	mov	al, ah
-	call	puthex8
-	pop	ax
-puthex8:
-	push	ax
-	push	cx
-	mov	cl, 4
-	push	ax
-	shr	al, cl
-	call	.nib
-	pop	ax
-	call	.nib
-	pop	cx
-	pop	ax
-	ret
-.nib:
-	and	al, 0Fh
-	add	al, '0'
-	cmp	al, '9'
-	jbe	.p
-	add	al, 7
-.p:	jmp	putc
-putdec16:					; AX
-	push	ax
-	push	bx
-	push	cx
-	push	dx
-	mov	bx, 10
-	xor	cx, cx
-.div:
-	xor	dx, dx
-	div	bx
-	push	dx
-	inc	cx
-	test	ax, ax
-	jnz	.div
-.out:
-	pop	ax
-	add	al, '0'
-	call	putc
-	loop	.out
-	pop	dx
-	pop	cx
-	pop	bx
-	pop	ax
-	ret
-
 exit:						; AL = errorlevel
 %ifdef BOOT
 	mov	[errorlevel], al
@@ -765,6 +487,8 @@ exit:						; AL = errorlevel
 	mov	ah, 4Ch
 	int	21h
 %endif
+
+%include "common.inc"
 
 ;--------------------------------------------------------------------
 ; Data
@@ -795,18 +519,13 @@ msg_count	db	'h, ', 0
 msg_blocks	db	' sectors in ', 0
 msg_of		db	' blocks of ', 0
 msg_passes	db	', passes: ', 0
-msg_geo		db	'BIOS geometry (heads/sectors): ', 0
 msg_geo_warn1	db	'WARNING: the image was made with ', 0
 msg_geo_warn2	db	' heads/sectors. Data is still', 13, 10
 		db	'checked by LBA, but DOS on this disk will not work with', 13, 10
 		db	'this BIOS geometry (check the translation mode).', 13, 10, 0
-msg_geofail	db	'INT 13h AH=08h failed for this drive', 13, 10, 0
 msg_pass	db	'Pass ', 0
 msg_bad_count	db	'  ', 0
 msg_bad_tail	db	' block(s) bad (X = wrong data, E = read error)', 13, 10, 0
-msg_rderr	db	13, 10, 'Read error at LBA ', 0
-msg_status	db	'h, status ', 0
-msg_beyond	db	13, 10, 'Beyond cylinder 1023: LBA ', 0
 msg_summary_ok	db	'All passes match the image.', 13, 10, 0
 msg_summary_bad	db	'FAILED: data read does not match the image.', 13, 10, 0
 msg_syntax	db	'Configuration: unknown key or bad value', 13, 10, 0
@@ -831,6 +550,7 @@ drive		db	0
 bios_spt	db	0
 blk_err		db	0
 bios_heads	dw	0
+bios_cyls	dw	0
 heads_x_spt	dw	0
 cfg_heads	dw	0
 cfg_spt		dw	0

@@ -127,6 +127,7 @@ class AtaDrive:
         self.total = cyls * heads * spt
         self.lba, self.lba_total = lba, lba_total or self.total
         self.tagged = tagged    # unwritten sectors start with their LBA
+        self.bad = set()        # LBAs that fail to read (UNC error)
         self.sectors = {}       # lba -> bytes(512), sparse
         self.multiple = 0
 
@@ -231,6 +232,10 @@ class XtIde:
     def _load_read_chunk(self):
         d = self._drive()
         self.chunk = min(self.per_drq, self.remaining)
+        if any(self.lba + i in d.bad for i in range(self.chunk)):
+            self.error = 0x40                       # Uncorrectable data
+            self.status = self.DRDY | self.DSC | self.ERR
+            return
         self.buf = b''.join(d.read(self.lba + i) for i in range(self.chunk))
         self.lba += self.chunk
         self.bufpos = 0

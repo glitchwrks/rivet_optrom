@@ -252,11 +252,22 @@ card and ROM together. It reads a range of sectors several times through
 INT 13h and compares a checksum of each block with values made from a
 known-good image of the same disk:
 
-1. Make or pick a disk image, and write it to the card.
-2. `python3 Tools/rdtest_cfg.py card.img` makes `RDTEST.CFG` for it: the
-   sector range (by default everything up to the last non-zero sector)
-   and the checksums, plus the heads and sectors per track from its
-   partition table.
+1. Make or pick a disk to test with.
+2. Make `RDTEST.CFG` for it, in either of two ways. Both write the sector
+   range (by default everything up to the last block holding data), a
+   checksum per block, and the heads and sectors per track from the
+   disk's partition table.
+   * From an image of the disk:
+     `python3 Tools/rdtest_cfg.py card.img`
+   * Without Python or a way to image disks: attach the disk to a PC
+     whose disk system is known to work (any controller with a BIOS) and
+     run `RDMKCFG` there. It reads the disk through INT 13h, the way
+     RDTEST does, and writes `RDTEST.CFG`, or the file named. Options:
+     `/D:hh` drive (default 80), `/S:n` first LBA, `/C:n` sectors (at
+     most 65535; the default scans that many and keeps up to the last
+     block with data, which takes a few minutes on an XT), `/B:n` block
+     size (default 64), `/P:n` passes (default 3). It stops without
+     writing anything if a read fails.
 3. Boot the PC under test from a floppy with `RDTEST.COM` and
    `RDTEST.CFG`, and run `RDTEST` (or `RDTEST other.cfg`).
 
@@ -267,6 +278,12 @@ geometry than the image was made with, which means DOS on that disk
 won't work in this PC with the current translation mode. Errorlevel is
 0 if everything matched, 1 on bad data or read errors, 2 for a bad
 configuration and 3 if the configuration file isn't found.
+
+`make rdtest` builds both programs into `Build/`. They share their disk,
+parsing and output code (`Tools/rdtest/common.inc`), and `make emutest`
+runs them under a minimal DOS on the emulated XT
+(`Tools/rdtest_test.py`). The tests include a check that RDMKCFG and
+`rdtest_cfg.py` produce the same configuration for the same disk.
 
 `Tools/disk_geometry.py` shows the geometry a disk or image was
 partitioned with.
