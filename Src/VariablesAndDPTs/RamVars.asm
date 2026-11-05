@@ -3,6 +3,7 @@
 ; Created date	:	14.3.2010
 ; Last update	:	23.8.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Functions for accessings RAMVARS.
 
 ; Section containing code
@@ -23,8 +24,12 @@ SECTION .text
 ALIGN JUMP_ALIGN
 RamVars_Initialize:
 	call	.StealMemoryForRAMVARS	; Get RAMVARS segment to DS even if no stealing
+%ifdef MODULE_BOOT_MENU
 	call	.ClearRamvarsFromDS
 	jmp		DriveXlate_Reset
+%else
+	jmp		SHORT .ClearRamvarsFromDS	; No drive translation without Boot Menu
+%endif
 
 ;--------------------------------------------------------------------
 ; .StealMemoryForRAMVARS
@@ -188,6 +193,7 @@ ALIGN JUMP_ALIGN
 	ret
 
 
+%ifdef MODULE_BOOT_MENU	; Only needed by the Boot Menu
 ;--------------------------------------------------------------------
 ; RamVars_GetHardDiskCountFromBDAtoCX
 ;	Parameters:
@@ -210,6 +216,7 @@ RamVars_GetHardDiskCountFromBDAtoCX:
 	pop		dx
 	pop		es
 	ret
+%endif ; MODULE_BOOT_MENU
 
 ;--------------------------------------------------------------------
 ; RamVars_GetCountOfKnownDrivesToDL

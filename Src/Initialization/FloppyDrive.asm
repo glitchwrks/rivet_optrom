@@ -3,6 +3,7 @@
 ; Created date	:	25.3.2010
 ; Last update	:	13.9.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Various floppy drive related functions that
 ;					Boot Menu uses.
 
@@ -93,6 +94,7 @@ FloppyDrive_IsInt40hInstalled:
 	ret
 
 
+%ifdef MODULE_BOOT_MENU	; Only needed by the Boot Menu
 ;--------------------------------------------------------------------
 ; Returns floppy drive type.
 ; PC/XT system do not support AH=08h but FLOPPY_TYPE_525_OR_35_DD
@@ -202,3 +204,4 @@ FloppyDrive_GetCountFromBDA:
 	eROL_IM	ch, 2							; EW low byte bits 7..6 to 1..0
 	add		cl, ch							; CL = Floppy Drive count
 	ret
+%endif ; MODULE_BOOT_MENU

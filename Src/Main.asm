@@ -41,6 +41,18 @@ SECTION .text
 	%define XTIDE_DEFAULT_BUS_TYPE	BUS_TYPE_8_DUAL
 %endif
 
+; The Boot Menu is included unless NO_BOOT_MENU is defined. Without it,
+; the image boots in BIOS order (A: then C:) with the simple boot loader,
+; and ROMVARS.wBuildFlags tells the configuration program so.
+%ifndef NO_BOOT_MENU
+	%define MODULE_BOOT_MENU
+	%define DEFAULT_BOOTLOADER_TYPE	BOOTLOADER_TYPE_MENU
+	%define BUILD_FLAGS				0
+%else
+	%define DEFAULT_BOOTLOADER_TYPE	BOOTLOADER_TYPE_SIMPLE
+	%define BUILD_FLAGS				FLG_BUILD_NOBOOTMENU
+%endif
+
 ; ROM variables (must start at offset 0)
 CNT_ROM_BLOCKS		EQU		16	; 16 * 512B = 8kB BIOS
 istruc ROMVARS
@@ -59,7 +71,7 @@ istruc ROMVARS
 %else
 		db	" (XT)=-",STOP
 %endif
-	at	ROMVARS.szVersion,	db	"v0.3.0 (11/04/26)",STOP
+	at	ROMVARS.szVersion,	db	"v0.4.0 (11/04/26)",STOP
 
 ;---------------------------;
 ; AT Build default settings ;
@@ -70,9 +82,10 @@ istruc ROMVARS
 	at	ROMVARS.bBootDrv,		db	80h						; Boot Menu default drive
 	at	ROMVARS.bBootMnuH,		db	20						; Boot Menu maximum height
 	at	ROMVARS.bBootDelay,		db	30						; Boot Menu selection delay (secs)
-	at	ROMVARS.bBootLdrType,	db	BOOTLOADER_TYPE_MENU	; Boot loader type
+	at	ROMVARS.bBootLdrType,	db	DEFAULT_BOOTLOADER_TYPE	; Boot loader type
 	at	ROMVARS.bMinFddCnt, 	db	0						; Do not force minimum number of floppy drives
 	at	ROMVARS.bStealSize,		db	1						; Steal 1kB from base memory
+	at	ROMVARS.wBuildFlags,	dw	BUILD_FLAGS				; How this image was built (read only)
 
 	at	ROMVARS.ideVars0+IDEVARS.wPort,			dw	1F0h			; Controller Command Block base port
 	at	ROMVARS.ideVars0+IDEVARS.wPortCtrl,		dw	3F0h			; Controller Control Block base port
@@ -103,9 +116,10 @@ istruc ROMVARS
 	at	ROMVARS.bBootDrv,		db	80h						; Boot Menu default drive
 	at	ROMVARS.bBootMnuH,		db	20						; Boot Menu maximum height
 	at	ROMVARS.bBootDelay,		db	30						; Boot Menu selection delay (secs)
-	at	ROMVARS.bBootLdrType,	db	BOOTLOADER_TYPE_MENU	; Boot loader type
+	at	ROMVARS.bBootLdrType,	db	DEFAULT_BOOTLOADER_TYPE	; Boot loader type
 	at	ROMVARS.bMinFddCnt, 	db	1						; Assume at least 1 floppy drive present if autodetect fails
 	at	ROMVARS.bStealSize,		db	1						; Steal 1kB from base memory in full mode
+	at	ROMVARS.wBuildFlags,	dw	BUILD_FLAGS				; How this image was built (read only)
 
 	at	ROMVARS.ideVars0+IDEVARS.wPort,			dw	300h			; Controller Command Block base port
 	at	ROMVARS.ideVars0+IDEVARS.wPortCtrl,		dw	308h			; Controller Control Block base port
@@ -139,15 +153,21 @@ iend
 %include "DetectPrint.asm"		; For printing drive detection strings
 
 ; Include .asm files (boot menu)
+%ifdef MODULE_BOOT_MENU
 %include "BootVars.asm"			; For accessing BOOTVARS struct
 %include "BootMenu.asm"			; For Boot Menu operations
 %include "BootMenuUI.asm"		; For Boot Menu drawing and keys
+%endif
 %include "FloppyDrive.asm"		; Floppy Drive related functions
+%ifdef MODULE_BOOT_MENU
 %include "BootMenuPrint.asm"	; For printing Boot Menu strings
 %include "BootMenuPrintCfg.asm"	; For printing hard disk configuration
+%endif
 
 ; Include .asm files (general drive accessing)
+%ifdef MODULE_BOOT_MENU
 %include "DriveXlate.asm"		; For swapping drive numbers
+%endif
 %include "HAddress.asm"			; For sector address translations
 %include "HCapacity.asm"		; For calculating drive capacity
 %include "HError.asm"			; For error checking
@@ -160,9 +180,13 @@ iend
 
 ; Include .asm files (Interrupt handlers)
 %include "Int13h.asm"			; For Int 13h, Disk functions
+%ifdef MODULE_BOOT_MENU
 %include "Int18h.asm"			; For Int 18h, ROM Boot and Boot error
+%endif
 %include "Int19h.asm"			; For Int 19h, Boot Loader
+%ifdef MODULE_BOOT_MENU
 %include "Int19hMenu.asm"		; For Int 19h, Boot Loader for Boot Menu
+%endif
 %include "BootPrint.asm"		; For printing boot information
 
 ; Include .asm files (Hard Disk BIOS functions)

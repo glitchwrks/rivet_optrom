@@ -175,6 +175,7 @@ BootInfo_StoreAtaChar:
 	ret
 
 
+%ifdef MODULE_BOOT_MENU	; Only needed by the Boot Menu
 ;--------------------------------------------------------------------
 ; Finds BOOTNFO for drive and return total sector count.
 ;
@@ -197,3 +198,4 @@ BootInfo_GetTotalSectorCount:
 	mov		bx, [bx+BOOTNFO.twSectCnt+4]
 	pop		ds
 	ret
+%endif ; MODULE_BOOT_MENU

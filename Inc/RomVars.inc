@@ -29,7 +29,8 @@ struc ROMVARS
 	.bBootLdrType	resb	1	; Boot Loader type
 	.bMinFddCnt		resb	1	; Minimum number of Floppy Drives
 	.bStealSize		resb	1	; Number of 1kB blocks stolen from 640kB base RAM
-					resb	7
+	.wBuildFlags	resb	2	; What this image was built with (read only, see below)
+					resb	5
 	; Offset 96 (60h) starts here
 	; Last IDEVARS must not start after offset FFh.
 	.ideVars0		resb	IDEVARS_size
@@ -46,6 +47,18 @@ FLG_ROMVARS_DRVXLAT		EQU	(1<<2)	; Enable drive number translation
 FLG_ROMVARS_ROMBOOT		EQU	(1<<3)	; Include ROMBOOT to boot menu
 FLG_ROMVARS_DRVNFO		EQU	(1<<4)	; Display drive info on boot menu
 FLG_ROMVARS_MAXSIZE		EQU	(1<<5)	; Maximize size by sacrificing compatibility with some old BIOSes
+
+; Bit defines for ROMVARS.wBuildFlags. These describe how the image was
+; built, so the configuration program can tell which settings apply to it.
+; The configuration program must not change them. A bit is set when
+; something was left out of the build, so zero means a full build (and
+; images built before this field existed, where it was reserved, read
+; correctly as full builds).
+FLG_BUILD_NOBOOTMENU	EQU	(1<<0)	; Built without the Boot Menu (BOOTLOADER_TYPE_MENU
+								; falls back to BOOTLOADER_TYPE_SIMPLE; bBootDrv,
+								; bBootMnuH, bBootDelay, FLG_ROMVARS_ROMBOOT,
+								; FLG_ROMVARS_DRVNFO and FLG_ROMVARS_DRVXLAT are
+								; not used)
 
 ; Bootloader types for ROMVARS.bBootLdrType
 BOOTLOADER_TYPE_MENU	EQU	(0<<1)	; Display boot menu on boot loader

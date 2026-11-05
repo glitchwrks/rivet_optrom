@@ -315,7 +315,8 @@ class XtIde:
 
 class Machine:
     def __init__(self, rom, drives, hispeed=False, floppies=0,
-                 keys=(), max_ticks=600, trace_int10=False):
+                 keys=(), max_ticks=600, trace_int10=False,
+                 floppy_bootable=False):
         self.mu = Uc(UC_ARCH_X86, UC_MODE_16)
         self.mu.mem_map(0, 0x100000)
         self.mem_rom = rom
@@ -323,6 +324,7 @@ class Machine:
         self.screen = Screen()
         self.ide = XtIde(0x300, drives, hispeed)
         self.floppies = floppies
+        self.floppy_bootable = floppy_bootable  # disk in A: with a boot sector
         self.keys = collections.deque(keys)     # (tick, keyword)
         self.max_ticks = max_ticks
         self.int10 = collections.Counter()
@@ -522,6 +524,11 @@ class Machine:
         elif ah == 0x15:
             self.w(UC_X86_REG_AH, 0x01 if dl < self.floppies else 0x00)
             self._ret_cf(False)
+        elif ah == 0x02 and dl == 0 and self.floppies and self.floppy_bootable:
+            es, bx = self.r(UC_X86_REG_ES), self.r(UC_X86_REG_BX)
+            self.mu.mem_write(es * 16 + bx, bytes(510) + b'\x55\xAA')
+            self.w(UC_X86_REG_AX, 0x0001)
+            self._ret_cf(False)
         else:
             self.w(UC_X86_REG_AH, 0x80)             # timeout, no disk
             self._ret_cf(True)
@@ -663,11 +670,14 @@ def main(argv):
     ap.add_argument('--keys', default='',
                     help='tick:key list, e.g. 40:down,60:enter')
     ap.add_argument('--max-ticks', type=int, default=1200)
+    ap.add_argument('--boot-floppy', action='store_true',
+                    help='put a bootable disk in drive A:')
     a = ap.parse_args(argv[1:])
     drives = make_drives(a.drives)
     drives += [None] * (2 - len(drives))
     m = Machine(open(a.rom, 'rb').read(), drives, a.hispeed, a.floppies,
-                parse_keys(a.keys), a.max_ticks)
+                parse_keys(a.keys), a.max_ticks,
+                floppy_bootable=a.boot_floppy)
     res = m.boot()
     print(m.screen.text())
     print('-' * 80)

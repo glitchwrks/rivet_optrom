@@ -28,12 +28,17 @@ struc BOOTVARS
 	.dwPostStack	resb	4		;  804h, POST stack when entering INT 19h
 	.bMenuHotkey	resb	1		;  808h, Boot Menu hotkey, zero if none pressed
 	.bPrintCnt		resb	1		;  809h, Characters printed (for Boot Menu line padding)
-					resb	2
+	.bMenuFlags		resb	1		;  80Ah, Boot Menu flags, see below
+					resb	1
 	.rgBootNfo		resb	73F4h	;  80Ch, Array containing BOOTNFO structs
 	.rgbMnuStack:					; 7C00h and below, Boot Menu stack
 	.rgbAtaInfo:					; 7C00h, ATA Information for drive detection
 	.rgbBootSect	resb 	512		; 7C00h, Boot sector
 endstruc
+
+; Bit defines for BOOTVARS.bMenuFlags (cleared when the boot loader starts)
+FLG_BOOTMENU_KEYPRESSED	EQU	(1<<0)	; A key was pressed: no selection timeout
+									; for the rest of this boot
 
 
 %endif ; BOOTVARS_INC

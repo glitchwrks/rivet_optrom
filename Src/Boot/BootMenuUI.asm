@@ -91,6 +91,13 @@ BootMenuUI_Run:
 	mul		bx
 	mov		bx, 55
 	div		bx
+	push	ds								; No timeout once a key has been
+	LOAD_BDA_SEGMENT_TO	ds, bx			; pressed during this boot
+	test	BYTE [BOOTVARS.bMenuFlags], FLG_BOOTMENU_KEYPRESSED
+	pop		ds
+	jz		SHORT .StoreTimeout
+	xor		ax, ax
+.StoreTimeout:
 	mov		[bp+BMVARS.wTimeInit], ax
 	mov		[bp+BMVARS.wTimeLeft], ax
 	mov		WORD [bp+BMVARS.wSecs], -1
@@ -140,6 +147,21 @@ BootMenuUI_Run:
 	jb		SHORT .NoDefaultMenuitem
 	mov		[bp+BMVARS.wItemTop], cx		; Set default to topmost
 .NoDefaultMenuitem:
+
+	; Discard keys pressed before the menu appeared (e.g. during POST),
+	; so a stray keypress can't stop the timeout of an unattended boot.
+	; Keys pressed while the menu is being drawn are still processed.
+.DrainKeyboardBuffer:
+	push	bp
+	mov		ah, 01h							; Check for keystroke
+	int		16h
+	jz		SHORT .KeyboardBufferEmpty
+	xor		ah, ah							; Read (and discard) keystroke
+	int		16h
+	pop		bp
+	jmp		SHORT .DrainKeyboardBuffer
+.KeyboardBufferEmpty:
+	pop		bp
 
 	; Draw menu and process keys until done
 	push	bp								; Save cursor shape set by the
@@ -208,6 +230,9 @@ BootMenuUI_Loop:
 	xor		ah, ah							; Read keystroke
 	int		16h
 	pop		bp
+	push	ax
+	call	BootMenuUI_StopTimeout			; Any key stops the countdown
+	pop		ax
 	call	BootMenuUI_ProcessKey
 	jc		SHORT .Return					; Menu done
 
@@ -223,6 +248,33 @@ BootMenuUI_Loop:
 	jbe		SHORT .Return					; Timeout: select current
 	call	BootMenuUI_DrawTimeoutDigits
 	jmp		SHORT .CheckKey
+.Return:
+	ret
+
+
+;--------------------------------------------------------------------
+; Stops the selection timeout for good: for the rest of this menu, and
+; for the rest of this boot if the menu is shown again (after Esc or a
+; failed boot). Redraws the bottom border without the countdown.
+;
+; BootMenuUI_StopTimeout
+;	Parameters:
+;		SS:BP:	Ptr to BMVARS
+;	Returns:
+;		Nothing
+;	Corrupts registers:
+;		AX, BX, CX, DX, SI, DI
+;--------------------------------------------------------------------
+ALIGN JUMP_ALIGN
+BootMenuUI_StopTimeout:
+	cmp		WORD [bp+BMVARS.wTimeInit], BYTE 0
+	je		SHORT .Return					; Already stopped or disabled
+	mov		WORD [bp+BMVARS.wTimeInit], 0
+	push	ds
+	LOAD_BDA_SEGMENT_TO	ds, ax
+	or		BYTE [BOOTVARS.bMenuFlags], FLG_BOOTMENU_KEYPRESSED
+	pop		ds
+	jmp		BootMenuUI_DrawBottomBorder
 .Return:
 	ret
 
@@ -384,8 +436,7 @@ BootMenuUI_ProcessKey:
 
 
 ;--------------------------------------------------------------------
-; Updates drive translation and restarts timeout after the selection
-; has changed.
+; Updates drive translation after the selection has changed.
 ;
 ; BootMenuUI_SelectionChanged
 ;	Parameters:
@@ -399,8 +450,6 @@ BootMenuUI_ProcessKey:
 ALIGN JUMP_ALIGN
 BootMenuUI_SelectionChanged:
 	push	dx
-	mov		ax, [bp+BMVARS.wTimeInit]
-	mov		[bp+BMVARS.wTimeLeft], ax
 	call	DriveXlate_Reset
 	mov		cx, [bp+BMVARS.wItemSel]
 	call	BootMenu_ConvertMenuitemToDriveOrFunction
@@ -450,7 +499,7 @@ BootMenuUI_DrawMenu:
 
 	; Info
 	test	BYTE [cs:ROMVARS.wFlags], FLG_ROMVARS_DRVNFO
-	jz		SHORT .DrawBottomBorder
+	jz		SHORT BootMenuUI_DrawBottomBorder
 	call	BootMenuUI_GetRowForInfoToDH
 	dec		dh
 	call	BootMenuUI_DrawMiddleBorderToRowDH
@@ -459,8 +508,20 @@ BootMenuUI_DrawMenu:
 	call	BootMenuUI_DrawLeftBordersFromRowDH
 	call	BootMenuUI_DrawInfo
 
-	; Bottom border
-.DrawBottomBorder:
+	; Fall to BootMenuUI_DrawBottomBorder
+
+;--------------------------------------------------------------------
+; Draws the bottom border, with the selection timeout if enabled.
+;
+; BootMenuUI_DrawBottomBorder
+;	Parameters:
+;		SS:BP:	Ptr to BMVARS
+;	Returns:
+;		Nothing
+;	Corrupts registers:
+;		AX, BX, CX, DX, SI, DI
+;--------------------------------------------------------------------
+BootMenuUI_DrawBottomBorder:
 	call	BootMenuUI_GetRowForBottomBorderToDH
 	cmp		WORD [bp+BMVARS.wTimeInit], BYTE 0
 	jne		SHORT .DrawBottomBorderWithTimeout

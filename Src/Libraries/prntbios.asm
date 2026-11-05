@@ -41,10 +41,12 @@ Print_BiosTeleChar:
 	mov		ah, FN_BIOS_WR_CHAR_TEL
 	mov		al, dl				; Copy char to write
 	xor		bx, bx				; Page 0
+%ifdef MODULE_BOOT_MENU
 	push	ds					; Count printed characters
 	mov		ds, bx				; for Boot Menu line padding
 	inc		BYTE [BOOTVARS.bPrintCnt]
 	pop		ds					; (before INT 10h, BX known 0)
+%endif
 	int		10h
 	pop		bx
 	pop		bp
@@ -108,11 +110,13 @@ ALIGN JUMP_ALIGN
 	jmp		.CharLoop				; Loop while chars left
 ALIGN JUMP_ALIGN
 .Return:
+%ifdef MODULE_BOOT_MENU
 	xor		bx, bx				; INT 10h may have changed BX
 	push	ds					; Count printed characters
 	mov		ds, bx				; for Boot Menu line padding
 	add		[BOOTVARS.bPrintCnt], dl
 	pop		ds
+%endif
 	pop		bx
 	pop		si
 	pop		bp

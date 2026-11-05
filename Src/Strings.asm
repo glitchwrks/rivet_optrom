@@ -17,6 +17,7 @@ g_szDetect:		db	"IDE %s at %x: ",STOP			; IDE Master at 1F0h:
 g_szNotFound:	db	"not found",CR,LF,STOP
 
 ; Boot loader strings
+%ifdef MODULE_BOOT_MENU
 g_szFloppyDrv:	db	"Floppy Drive",STOP
 g_szHardDrv:	db	" Hard Drive ",STOP
 g_szTryToBoot:	db	"Booting from %s %x",175,"%x ... ",STOP
@@ -24,6 +25,11 @@ g_szBootSector:	db	"Boot Sector",STOP
 g_szFound:		db	"found",STOP
 g_szSectRead:	db	"%s %s!",CR,LF,STOP
 g_szReadError:	db	"Error %x!",CR,LF,STOP
+%else	; Without the Boot Menu, only hard disk boot failures are printed
+g_szHdReadError:	db	"Can't boot hard disk %x: error %x",CR,LF,STOP
+g_szHdNotBootable:	db	"Can't boot hard disk %x: no boot sector",CR,LF,STOP
+%endif
+%ifdef MODULE_BOOT_MENU	; Strings only used by the Boot Menu
 g_sz18hCallback:db	"Boot menu callback via INT 18h",STOP
 
 ; Boot menu bottom of screen strings
@@ -34,8 +40,13 @@ g_szBottomScrn:	db	"%c to %c boots from %s with %s mappings",CR,LF,STOP
 ; Boot Menu bottom border string
 g_szTimeout:	db	"Selection Timeout ",STOP
 
-; Boot Menu title strings
+%endif ; MODULE_BOOT_MENU
+
+; Boot Menu title strings. Kept in every image, so the original copyright
+; notice stays in the ROM even when the Boot Menu is not included.
 g_szTitleLn3:	db	"Copyright 2009-2010 by Tomi Tilli",STOP
+
+%ifdef MODULE_BOOT_MENU
 
 ; Boot Menu menuitem strings
 g_szFDLetter:	db	"%s %c",STOP
@@ -55,3 +66,4 @@ g_szLBA48:		db	"LBA48",STOP
 g_szFddUnknown:	db	"%sUnknown",STOP
 g_szFddSizeOr:	db	"%s5",172,22h," or 3",171,22h," DD",STOP
 g_szFddSize:	db	"%s%c%c",22h,", %u kiB",STOP	; 3½", 1440 kiB
+%endif ; MODULE_BOOT_MENU
