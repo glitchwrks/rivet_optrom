@@ -67,7 +67,9 @@ def main(argv):
         print('255 heads, 63 sectors: any mode except none works.')
     elif found and (found[0][1], found[0][2]) == (255, 63):
         print('For 255 heads, 63 sectors on a disk of 8 GB or less: 255 (or auto).')
-        print('rivet / XUB v1.1.5 would use fewer heads, so DOS would not work.')
+        print('rivet / XUB v1.1.5 would use fewer heads; DOS still reads the')
+        print('disk correctly then, and booting usually works, as long as the')
+        print('drive reports 63 sectors per track (hdparm -I).')
     else:
         print('Other geometries: rivet, none or assist, whichever gives these')
         print('heads/sectors for the drive\'s own geometry (hdparm -I).')

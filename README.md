@@ -198,10 +198,21 @@ read correctly.
 ## CHS translation modes
 
 Disks over 504 MB (more than 1024 cylinders) need their geometry
-translated for INT 13h, and different BIOSes do it differently. What has
-to match for a disk to work, and boot, on another machine is the number
-of heads and sectors per track: DOS records them in the partition table
-and the boot sector, and DOS 6.22 boot code reads the disk using them.
+translated for INT 13h, and different BIOSes do it differently. The
+partition table and the DOS boot sector record the heads and sectors
+per track a disk was partitioned with, and the boot code (the MBR and
+the boot sector) reads the disk with them. Once DOS is running, it finds
+partitions by their start sector and reads them with the geometry the
+BIOS reports, so file access works under any translation; booting is
+what needs the geometries to match:
+
+* A different number of sectors per track moves every CHS address,
+  even the first sector of the partition, so the disk won't boot. Small
+  CF cards often report 32 sectors per track, which v1.1.5 keeps and
+  later PCs replace with 63.
+* With only the number of heads different, the start of the disk maps
+  the same under both, and that is where the boot code reads on a
+  usual DOS disk, so it normally still boots.
 
 Each drive can use one of five modes:
 
@@ -273,9 +284,12 @@ known-good image of the same disk:
 
 Each block prints `.` if it matches, `X` if the data differs and `E` on
 a read error. Errors that come and go between passes point at a
-marginal connection. RDTEST also warns if the BIOS reports a different
-geometry than the image was made with, which means DOS on that disk
-won't work in this PC with the current translation mode. CTRL+C (or
+marginal connection. RDTEST also compares the BIOS geometry with the
+one the disk was partitioned with: a different number of sectors per
+track gets a warning, since this PC can't boot from the disk with the
+current translation mode; only a different number of heads gets a note,
+since DOS still reads the disk correctly and booting usually works.
+Reads are checked by LBA either way. CTRL+C (or
 CTRL+BREAK) aborts at any time; RDMKCFG then writes nothing. Errorlevel
 is 0 if everything matched, 1 on bad data or read errors, 2 for a bad
 configuration, 3 if the configuration file isn't found and 4 if aborted.

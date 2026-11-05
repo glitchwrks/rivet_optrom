@@ -6,8 +6,9 @@
 (the INT 21h functions they use) on the emulated XT with a Rivet image.
 
 RDTEST: checked against configurations from rdtest_cfg.py made from a
-synthetic disk image: a clean disk, corrupted sectors, a geometry
-mismatch warning, a range that crosses cylinders, a missing or bad
+synthetic disk image: a clean disk, corrupted sectors, geometry
+mismatch messages (a note for heads only, a warning for sectors per
+track), a range that crosses cylinders, a missing or bad
 configuration file.
 
 RDMKCFG: its configuration must hold the same values as rdtest_cfg.py's
@@ -181,11 +182,20 @@ def main(argv):
         check('missing config', res == ('exit', 3) and 'Cannot open' in out, (res, out))
 
         # The image was made at 255/63; rivet mode on a 16383/16/63 drive
-        # also gives 255 heads, mode none gives 16
-        res, out = run_com(rom, com, sectors, {'RDTEST.CFG': cfg}, mode=xlate_test.NONE)
-        check('geometry warning', res == ('exit', 0) and 'WARNING' in out, (res, out))
+        # also gives 255 heads, mode none gives 16: only the heads differ,
+        # so a note. A different sectors per track is a warning.
         res, out = run_com(rom, com, sectors, {'RDTEST.CFG': cfg})
-        check('no geometry warning', 'WARNING' not in out, out)
+        check('no geometry message', 'WARNING' not in out and 'Note:' not in out, out)
+        res, out = run_com(rom, com, sectors, {'RDTEST.CFG': cfg}, mode=xlate_test.NONE)
+        check('heads-only note', res == ('exit', 0) and 'WARNING' not in out
+              and 'Note: the disk was partitioned with 255/63' in out
+              and 'uses 16 heads' in out, (res, out))
+        spt = cfg.replace(b'SPT=63', b'SPT=32')
+        res, out = run_com(rom, com, sectors, {'RDTEST.CFG': spt})
+        check('sectors per track warning', res == ('exit', 0) and 'Note:' not in out
+              and 'WARNING: the disk was partitioned with 255/32' in out
+              and 'uses 63 sectors per track' in out
+              and 'cannot boot' in out, (res, out))
 
         # A range across cylinder boundaries (16065 sectors per cylinder)
         cfg2 = make_cfg(image, tmp, '--start', '31900', '--count', '640', '--block', '32')

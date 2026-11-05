@@ -168,7 +168,13 @@ list_bad_blocks:
 	ret
 
 ;--------------------------------------------------------------------
-; Geometry from INT 13h AH=08h, compared with the configuration
+; Geometry from INT 13h AH=08h, compared with the configuration.
+; DOS finds a partition by its start LBA and reads it with the BIOS
+; geometry, so only the boot code depends on the geometry the disk was
+; partitioned with. A different sectors per track moves even CHS 0/1/1,
+; so the disk can't boot: a warning. With only the heads different,
+; cylinder 0 below the smaller head count maps the same, which covers
+; the boot code's reads on a usual disk: a note.
 ;--------------------------------------------------------------------
 check_geometry:
 	call	get_bios_geometry
@@ -176,14 +182,33 @@ check_geometry:
 	; Compare with the configuration, if it has a geometry
 	cmp	word [cfg_heads], 0
 	je	.ok
-	mov	ax, [cfg_heads]
-	cmp	ax, [bios_heads]
-	jne	.mismatch
 	mov	ax, [cfg_spt]
 	cmp	al, [bios_spt]
+	jne	.spt
+	mov	ax, [cfg_heads]
+	cmp	ax, [bios_heads]
 	je	.ok
-.mismatch:
+	mov	di, msg_geo_note1
+	call	put_cfg_geometry
+	mov	ax, [bios_heads]
+	mov	di, msg_geo_note2
+	jmp	short .tail
+.spt:
 	mov	di, msg_geo_warn1
+	call	put_cfg_geometry
+	mov	al, [bios_spt]
+	xor	ah, ah
+	mov	di, msg_geo_warn2
+.tail:
+	call	putdec16
+	call	puts
+.ok:
+	clc
+.r:	ret
+
+; Prints the string at DI, the configuration's heads/sectors, then
+; msg_geo_mid.
+put_cfg_geometry:
 	call	puts
 	mov	ax, [cfg_heads]
 	call	putdec16
@@ -191,11 +216,8 @@ check_geometry:
 	call	putc
 	mov	ax, [cfg_spt]
 	call	putdec16
-	mov	di, msg_geo_warn2
-	call	puts
-.ok:
-	clc
-.r:	ret
+	mov	di, msg_geo_mid
+	jmp	puts
 
 ;--------------------------------------------------------------------
 ; Configuration
@@ -523,10 +545,13 @@ msg_count	db	'h, ', 0
 msg_blocks	db	' sectors in ', 0
 msg_of		db	' blocks of ', 0
 msg_passes	db	', passes: ', 0
-msg_geo_warn1	db	'WARNING: the image was made with ', 0
-msg_geo_warn2	db	' heads/sectors. Data is still', 13, 10
-		db	'checked by LBA, but DOS on this disk will not work with', 13, 10
-		db	'this BIOS geometry (check the translation mode).', 13, 10, 0
+msg_geo_warn1	db	'WARNING: the disk was partitioned with ', 0
+msg_geo_note1	db	'Note: the disk was partitioned with ', 0
+msg_geo_mid	db	' heads/sectors,', 13, 10, 'but this BIOS uses ', 0
+msg_geo_warn2	db	' sectors per track. Data is still checked by LBA, but', 13, 10
+		db	'this PC cannot boot from the disk (check the translation mode).', 13, 10, 0
+msg_geo_note2	db	' heads. DOS reads the disk correctly either way,', 13, 10
+		db	'and booting from it usually works too.', 13, 10, 0
 msg_pass	db	'Pass ', 0
 msg_bad_count	db	'  ', 0
 msg_bad_tail	db	' block(s) bad (X = wrong data, E = read error)', 13, 10, 0
