@@ -24,7 +24,8 @@
 ; its start LBA), so RDTEST can warn about a translation mismatch.
 ;
 ; Errorlevel: 0 written, 1 read error, 2 bad arguments or geometry,
-; 3 the file could not be written.
+; 3 the file could not be written, 4 aborted with
+; CTRL+C or CTRL+BREAK (any time; RDMKCFG then writes nothing).
 ;
 ; 8088 code. Assemble with NASM:  nasm -f bin -o RDMKCFG.COM rdmkcfg.asm
 
@@ -39,6 +40,9 @@ start:
 	mov	sp, stack_top
 	mov	di, msg_title
 	call	puts
+	mov	di, msg_abort_hint
+	call	puts
+	call	install_abort_handler
 	call	parse_cmdline
 	jnc	.args_ok
 	mov	di, msg_usage

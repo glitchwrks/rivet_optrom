@@ -113,7 +113,7 @@ def make_cfg(image, tmp, *args):
 
 
 def run_com(rom_path, com, sectors, files, cmdline='', corrupt=(), mode=0,
-            bad=()):
+            bad=(), keys=()):
     rom = bytearray(open(rom_path, 'rb').read())
     rom[xlate_test.xlate_mode_offset(rom)] = mode
     rom[-1] = 0
@@ -125,6 +125,7 @@ def run_com(rom_path, com, sectors, files, cmdline='', corrupt=(), mode=0,
         drive.write(n, s)
     drive.bad = set(bad)
     m = DosMachine(bytes(rom), [drive, None], False, 1, [], 60000)
+    m.keys.extend(keys)             # Pressed while the .COM runs
     m.files = files
     res = m.boot()
     assert res == ('boot', 0x80), res
@@ -191,6 +192,16 @@ def main(argv):
         res, out = run_com(rom, com, sectors, {'RDTEST.CFG': cfg2}, corrupt={32130})
         check('cylinder crossing', res == ('exit', 1) and '.......X....' in out, (res, out))
 
+        # CTRL+C and CTRL+BREAK abort; other keys are ignored. Keys are
+        # queued before the program starts, so the first check sees them.
+        for key in ('ctrlc', 'ctrlbreak'):
+            res, out = run_com(rom, com, sectors, {'RDTEST.CFG': cfg}, keys=[(0, key)])
+            check(f'{key} aborts', res == ('exit', 4) and 'Aborted' in out
+                  and 'Press CTRL+C to abort' in out, (res, out))
+        res, out = run_com(rom, com, sectors, {'RDTEST.CFG': cfg}, keys=[(0, 'd')])
+        check('other key ignored', res == ('exit', 0) and 'All passes match' in out,
+              (res, out))
+
         bad = cfg.replace(b'COUNT=2048', b'COUNT=1900')   # 30 blocks, 32 SUMs
         res, out = run_com(rom, com, sectors, {'RDTEST.CFG': bad})
         check('sum count check', res == ('exit', 2) and 'number of SUM' in out, (res, out))
@@ -219,6 +230,10 @@ def main(argv):
         files = {}
         res, out = run_com(rom, mk, sectors2, files, bad={1500})
         check('rdmkcfg read error', res == ('exit', 1) and not files, (res, out))
+
+        files = {}
+        res, out = run_com(rom, mk, sectors2, files, keys=[(0, 'ctrlc')])
+        check('rdmkcfg ctrlc', res == ('exit', 4) and not files, (res, out))
 
         res, out = run_com(rom, mk, sectors2, {}, cmdline='/x')
         check('rdmkcfg bad switch', res == ('exit', 2) and 'usage' in out, (res, out))

@@ -275,9 +275,10 @@ Each block prints `.` if it matches, `X` if the data differs and `E` on
 a read error. Errors that come and go between passes point at a
 marginal connection. RDTEST also warns if the BIOS reports a different
 geometry than the image was made with, which means DOS on that disk
-won't work in this PC with the current translation mode. Errorlevel is
-0 if everything matched, 1 on bad data or read errors, 2 for a bad
-configuration and 3 if the configuration file isn't found.
+won't work in this PC with the current translation mode. CTRL+C (or
+CTRL+BREAK) aborts at any time; RDMKCFG then writes nothing. Errorlevel
+is 0 if everything matched, 1 on bad data or read errors, 2 for a bad
+configuration, 3 if the configuration file isn't found and 4 if aborted.
 
 `make rdtest` builds both programs into `Build/`. They share their disk,
 parsing and output code (`Tools/rdtest/common.inc`), and `make emutest`

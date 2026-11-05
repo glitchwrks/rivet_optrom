@@ -50,6 +50,7 @@ INSNS_PER_TICK = 20000
 KEYS = {
     'up': 0x4800, 'down': 0x5000, 'home': 0x4700, 'end': 0x4F00,
     'pgup': 0x4900, 'pgdn': 0x5100, 'enter': 0x1C0D, 'esc': 0x011B,
+    'ctrlc': 0x2E03, 'ctrlbreak': 0x0000,
     'left': 0x4B00, 'right': 0x4D00,
 }
 for c in 'abcdefghijklmnopqrstuvwxyz':

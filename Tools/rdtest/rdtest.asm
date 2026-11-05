@@ -11,7 +11,8 @@
 ; usage: RDTEST [config file]      (default RDTEST.CFG)
 ;
 ; Errorlevel: 0 all passes match, 1 mismatch or read error, 2 bad
-; configuration or geometry, 3 configuration file not found.
+; configuration or geometry, 3 configuration file not found, 4 aborted
+; with CTRL+C or CTRL+BREAK (checked before every sector read).
 ;
 ; Checksum of a block: start at 0; for each little-endian word of each
 ; sector, rotate the 16-bit sum left by one and add the word.
@@ -45,6 +46,9 @@ start:
 %endif
 	mov	di, msg_title
 	call	puts
+	mov	di, msg_abort_hint
+	call	puts
+	call	install_abort_handler
 %ifndef BOOT
 	call	read_cfg_file			; SI = text, CX = length
 %endif

@@ -7,8 +7,57 @@
 ;	drive (byte), lba (dword), bios_spt (byte), bios_heads (word),
 ;	bios_cyls (word), heads_x_spt (word), text_end (word),
 ;	buf (512 bytes)
-; and, in a build with BOOT defined, errorlevel (byte).
+; and, in a build with BOOT defined, errorlevel (byte); and exit:,
+; which ends the program with the errorlevel in AL.
 ;--------------------------------------------------------------------
+
+ERRORLEVEL_ABORTED	equ	4
+
+;--------------------------------------------------------------------
+; CTRL+C / CTRL+BREAK. install_abort_handler points INT 23h (DOS's
+; CTRL+C handler, restored by DOS when the program ends) at
+; abort_by_user, so DOS's own CTRL+C checks during output end the
+; program the same way. check_abort also looks at the keyboard through
+; the BIOS before every sector read, so a long read stops promptly even
+; with output redirected. Other keys are read and ignored.
+;--------------------------------------------------------------------
+install_abort_handler:
+%ifndef BOOT
+	mov	dx, abort_by_user
+	mov	ax, 2523h			; Set INT 23h vector to DS:DX
+	int	21h
+%endif
+	ret
+
+check_abort:
+	push	ax
+	mov	ah, 01h				; Key waiting?
+	int	16h
+	jz	.none
+	cmp	al, 03h				; CTRL+C
+	je	.abort
+	test	ax, ax				; CTRL+BREAK
+	jz	.abort
+	xor	ah, ah				; Some other key: drop it
+	int	16h
+.none:
+	pop	ax
+	ret
+.abort:
+	xor	ah, ah
+	int	16h
+	pop	ax
+abort_by_user:
+	sti
+	push	cs
+	pop	ds
+	push	cs
+	pop	es
+	cld
+	mov	di, msg_user_abort
+	call	puts
+	mov	al, ERRORLEVEL_ABORTED
+	jmp	exit
 
 ;--------------------------------------------------------------------
 ; Geometry of [drive] from INT 13h AH=08h, printed.
@@ -80,6 +129,7 @@ sum_sector:
 ; Reads LBA [lba] into buf. CF set on error (message printed).
 ;--------------------------------------------------------------------
 read_lba:
+	call	check_abort
 	; Cylinder/head/sector from the BIOS geometry
 	mov	ax, [lba+2]
 	xor	dx, dx
@@ -319,3 +369,5 @@ msg_geofail	db	'INT 13h AH=08h failed for this drive', 13, 10, 0
 msg_rderr	db	13, 10, 'Read error at LBA ', 0
 msg_status	db	'h, status ', 0
 msg_beyond	db	13, 10, 'Beyond cylinder 1023: LBA ', 0
+msg_user_abort	db	13, 10, 'Aborted (CTRL+C)', 13, 10, 0
+msg_abort_hint	db	'Press CTRL+C to abort.', 13, 10, 0
