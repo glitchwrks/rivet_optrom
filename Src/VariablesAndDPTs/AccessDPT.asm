@@ -3,15 +3,17 @@
 ; Created date	:	16.3.2010
 ; Last update	:	26.4.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Functions for accessing DPT data.
 
 ; Section containing code
 SECTION .text
 
 ;--------------------------------------------------------------------
-; Returns L-CHS values from DPT.
+; Returns L-CHS values from DPT (stored by CreateDPT_StoreLCHS for the
+; drive's CHS translation mode).
 ;
-; AccessDPT_GetLCHSfromPCHS
+; AccessDPT_GetLCHS
 ;	Parameters:
 ;		DS:DI:	Ptr to Disk Parameter Table
 ;	Returns:
@@ -22,14 +24,10 @@ SECTION .text
 ;		Nothing
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
-AccessDPT_GetLCHSfromPCHS:
-	xchg	ax, cx
-	mov		cl, [di+DPT.bShLtoP]		; Load shift count
-	mov		bx, [di+DPT.wPCyls]			; Load P-CHS cylinders
-	shr		bx, cl						; Shift to L-CHS cylinders
-	xchg	cx, ax
+AccessDPT_GetLCHS:
+	mov		bx, [di+DPT.wLCyls]			; Load L-CHS cylinders
 	mov		dx, [di+DPT.wLHeads]		; Load L-CHS heads
-	eMOVZX	ax, BYTE [di+DPT.bPSect]	; Load Sectors per track
+	eMOVZX	ax, BYTE [di+DPT.bLSect]	; Load L-CHS sectors per track
 	ret
 
 

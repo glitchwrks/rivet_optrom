@@ -88,7 +88,8 @@ BUS_TYPE_8_HISPEED		EQU	(4<<1)	; XTIDE HI-SPEED mode (A0 and A3 swapped, "Chuck 
 ; Master/Slave drive specific parameters
 struc DRVPARAMS
 	.wFlags			resb	2	; Drive flags
-					resb	2	; Reserved
+	.bXlateMode		resb	1	; CHS translation mode (XLATE_MODE_xxx)
+					resb	1	; Reserved
 	.wCylinders		resb	2	; User specified cylinders (1...16383)
 	.wSectAndHeads:
 	.bSect			resb	1	; User specified Sectors per track (1...63)
@@ -98,6 +99,20 @@ endstruc
 ; Bit defines for DRVPARAMS.wFlags
 FLG_DRVPARAMS_USERCHS	EQU	(1<<0)	; User specified P-CHS values
 FLG_DRVPARAMS_BLOCKMODE	EQU	(1<<1)	; Enable Block mode transfers
+
+; CHS translation modes for DRVPARAMS.bXlateMode: how the L-CHS geometry
+; that INT 13h reports (and DOS partitions and formats with) is made from
+; the drive. What matters for exchanging disks between machines is the
+; heads and sectors per track. The LBA modes need a drive that supports
+; LBA and no user specified CHS; otherwise XLATE_MODE_RIVET is used.
+XLATE_MODE_RIVET		EQU	0	; XTIDE Universal BIOS v1.1.5: halve cylinders and
+								; double heads until 1024 or less (256 -> 255 heads)
+XLATE_MODE_NONE			EQU	1	; No translation ("Normal"): P-CHS, max 1024 cylinders
+XLATE_MODE_LBA_ASSIST	EQU	2	; LBA assist above 1024 cylinders: 63 sectors, heads
+								; 16/32/64/128/255 by capacity (XUB 2.x since r610,
+								; 486-era "LBA" BIOS setting)
+XLATE_MODE_LBA_255		EQU	3	; Always 255 heads, 63 sectors (later PCs)
+XLATE_MODE_LAST			EQU	XLATE_MODE_LBA_255
 
 
 %endif ; ROMVARS_INC

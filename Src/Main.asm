@@ -71,7 +71,7 @@ istruc ROMVARS
 %else
 		db	" (XT)",STOP
 %endif
-	at	ROMVARS.szVersion,	db	"v0.4.1 (11/04/26)",STOP
+	at	ROMVARS.szVersion,	db	"v0.5.0 (11/04/26)",STOP
 
 ;---------------------------;
 ; AT Build default settings ;

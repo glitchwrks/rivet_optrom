@@ -3,6 +3,7 @@
 ; Created date	:	27.9.2007
 ; Last update	:	24.9.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Int 13h function AH=8h, Read Disk Drive Parameters.
 
 ; Section containing code
@@ -71,7 +72,7 @@ ALIGN JUMP_ALIGN
 ALIGN JUMP_ALIGN
 AH8h_GetDriveParameters:
 	call	FindDPT_ForDriveNumber
-	call	AccessDPT_GetLCHSfromPCHS	; AX=sectors, BX=cylinders, DX=heads
+	call	AccessDPT_GetLCHS			; AX=sectors, BX=cylinders, DX=heads
 	call	AH8h_ReserveCylinders
 	call	AH8h_PackReturnValues
 	xor		ax, ax						; Clear AH and CF
@@ -94,6 +95,8 @@ ALIGN JUMP_ALIGN
 AH8h_ReserveCylinders:
 	test	BYTE [cs:ROMVARS.wFlags], FLG_ROMVARS_MAXSIZE
 	jnz		SHORT .Return
+	cmp		bx, BYTE 1					; Only cylinder? (1 - 1 = 0 would
+	jbe		SHORT .Return				;  wrap to 1024 when packed)
 	dec		bx							; Reserve diagnostic cylinder
 ALIGN JUMP_ALIGN
 .Return:

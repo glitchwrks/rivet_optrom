@@ -163,7 +163,7 @@ HAddress_ConvertLCHStoLBA28:
 	adc		dl, dh
 
 	; *=sectPerTrack (18-bit by 6-bit multiplication with 24-bit result)
-	eMOVZX	cx, BYTE [di+DPT.bPSect]; Load Sectors per Track
+	eMOVZX	cx, BYTE [di+DPT.bLSect]; Load L-CHS Sectors per Track
 	xchg	ax, dx					; Hiword to AX, loword to DX
 	mul		cl						; AX = hiword * Sectors per Track
 	mov		bh, al					; Backup hiword * Sectors per Track

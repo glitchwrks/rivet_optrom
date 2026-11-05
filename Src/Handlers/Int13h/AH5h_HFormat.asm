@@ -3,6 +3,7 @@
 ; Created date	:	2.11.2007
 ; Last update	:	12.4.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Int 13h function AH=5h, Format Disk Track.
 
 ; Section containing code
@@ -39,6 +40,6 @@ AH5h_HandlerForFormatDiskTrack:
 	; Format command is vendor specific on IDE drives.
 	; Let's do verify instead.
 	call	FindDPT_ForDriveNumber		; DS:DI now points to DPT
-	mov		al, [di+DPT.bPSect]			; Load Sectors per Track to AL
+	mov		al, [di+DPT.bLSect]			; Load L-CHS Sectors per Track to AL
 	call	AH4h_VerifySectors
 	jmp		Int13h_PopXRegsAndReturn

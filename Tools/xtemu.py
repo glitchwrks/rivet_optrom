@@ -121,9 +121,12 @@ class Screen:
 
 
 class AtaDrive:
-    def __init__(self, model, cyls, heads, spt):
+    def __init__(self, model, cyls, heads, spt, lba=True, lba_total=None,
+                 tagged=False):
         self.model, self.cyls, self.heads, self.spt = model, cyls, heads, spt
         self.total = cyls * heads * spt
+        self.lba, self.lba_total = lba, lba_total or self.total
+        self.tagged = tagged    # unwritten sectors start with their LBA
         self.sectors = {}       # lba -> bytes(512), sparse
         self.multiple = 0
 
@@ -132,12 +135,14 @@ class AtaDrive:
         w[0] = 0x0040
         w[1], w[3], w[6] = self.cyls, self.heads, self.spt
         w[47] = 0x8010
-        w[49] = 0x0200              # LBA supported
+        w[49] = 0x0200 if self.lba else 0   # LBA supported
         w[53] = 0x0001
         w[54], w[55], w[56] = self.cyls, self.heads, self.spt
         w[57], w[58] = self.total & 0xFFFF, self.total >> 16
         w[59] = 0x0100 | self.multiple if self.multiple else 0
-        w[60], w[61] = self.total & 0xFFFF, self.total >> 16
+        if self.lba:
+            n = min(self.lba_total, 0x0FFFFFFF)
+            w[60], w[61] = n & 0xFFFF, n >> 16
 
         def put_str(start, nwords, s):
             s = s.ljust(nwords * 2)[:nwords * 2].encode('ascii')
@@ -149,7 +154,11 @@ class AtaDrive:
         return b''.join(x.to_bytes(2, 'little') for x in w)
 
     def read(self, lba):
-        return self.sectors.get(lba, bytes(512))
+        if lba in self.sectors:
+            return self.sectors[lba]
+        if self.tagged:
+            return (lba.to_bytes(4, 'little') + b'LBA!').ljust(512, b'\0')
+        return bytes(512)
 
     def write(self, lba, data):
         self.sectors[lba] = bytes(data)
@@ -316,7 +325,7 @@ class XtIde:
 class Machine:
     def __init__(self, rom, drives, hispeed=False, floppies=0,
                  keys=(), max_ticks=600, trace_int10=False,
-                 floppy_bootable=False):
+                 floppy_bootable=False, run_boot_sector=False):
         self.mu = Uc(UC_ARCH_X86, UC_MODE_16)
         self.mu.mem_map(0, 0x100000)
         self.mem_rom = rom
@@ -325,6 +334,7 @@ class Machine:
         self.ide = XtIde(0x300, drives, hispeed)
         self.floppies = floppies
         self.floppy_bootable = floppy_bootable  # disk in A: with a boot sector
+        self.run_boot_sector = run_boot_sector  # keep going at 0:7C00
         self.keys = collections.deque(keys)     # (tick, keyword)
         self.max_ticks = max_ticks
         self.int10 = collections.Counter()
@@ -450,6 +460,8 @@ class Machine:
         mu.emu_stop()
 
     def _on_boot(self, mu, addr, size, _):
+        if self.run_boot_sector:
+            return
         if self.r(UC_X86_REG_CS) * 16 + self.r(UC_X86_REG_IP) == 0x7C00:
             self.result = ('boot', self.r(UC_X86_REG_DL))
             mu.emu_stop()

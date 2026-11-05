@@ -24,6 +24,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import xtemu  # noqa: E402
+import xlate_test  # noqa: E402
 
 FAILURES = []
 
@@ -173,9 +174,16 @@ def main(argv):
     for img, hs in images:
         test_image(os.path.join(build, img), hs)
         test_nomenu_image(os.path.join(build, img[:-4] + '_nomenu.bin'), hs)
+    # CHS translation modes: geometry and sector mapping. The no-menu
+    # images boot straight into the test program; the XT and AT builds
+    # take different paths (lite mode, and full mode with EBIOS)
+    xlate_test.check_rom(os.path.join(build, 'rivet_xt_nomenu.bin'), FAILURES)
+    xlate_test.check_rom(os.path.join(build, 'rivet_at_nomenu.bin'), FAILURES,
+                         maxsize_variants=(True,))   # (slow: empty AT ports)
     for f in FAILURES:
         print('FAIL', f)
-    print(f'emu_test: {2 * len(images)} images, {len(FAILURES)} failures')
+    print(f'emu_test: {2 * len(images)} images + translation modes, '
+          f'{len(FAILURES)} failures')
     return 1 if FAILURES else 0
 
 

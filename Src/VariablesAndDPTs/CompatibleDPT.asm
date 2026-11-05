@@ -3,6 +3,7 @@
 ; Created date	:	6.4.2010
 ; Last update	:	6.4.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Functions for creating Disk Parameter Tables for
 ;					software compatibility only. These DPTs are not used
 ;					by our BIOS.
@@ -119,7 +120,7 @@ CompatibleDPT_CreateForDrive81h:
 ;--------------------------------------------------------------------
 ALIGN JUMP_ALIGN
 CompatibleDPT_CopyFromCustom:
-	call	AccessDPT_GetLCHSfromPCHS			; AX=Lsects, BX=Lcyls, DX=Lheads
+	call	AccessDPT_GetLCHS					; AX=Lsects, BX=Lcyls, DX=Lheads
 	test	BYTE [di+DPT.bFlags], FLG_DPT_EBIOS	; Drive larger than 504 MiB?
 	jnz		SHORT CompatibleDPT_CopyFromCustomToEDPT
 	; Fall to CompatibleDPT_CopyFromCustomToFDPT
@@ -177,8 +178,9 @@ CompatibleDPT_CopyFromCustomToEDPT:
 	mov		[si+COMPATIBLE_EDPT.wLCyls], bx
 	mov		[si+COMPATIBLE_EDPT.bLHeads], dl
 	mov		BYTE [si+COMPATIBLE_EDPT.bSignature], COMPATIBLE_EDPT_SIGNATURE
-	mov		[si+COMPATIBLE_EDPT.bPSect], al
 	mov		[si+COMPATIBLE_EDPT.bLSect], al
+	mov		al, [di+DPT.bPSect]			; P-CHS sectors per track can
+	mov		[si+COMPATIBLE_EDPT.bPSect], al	; differ from L-CHS
 	mov		al, [di+DPT.bDrvCtrl]
 	mov		[si+COMPATIBLE_EDPT.bDrvCtrl], al
 	mov		ax, [di+DPT.wPCyls]

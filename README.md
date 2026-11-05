@@ -25,6 +25,8 @@ Changes from v1.1.5:
   order instead; in the boot menu, any keypress stops the selection
   timeout (see below)
 * v0.4.1: the ROM title drops the `-=` `=-` decoration
+* v0.5.0: per-drive CHS translation modes, so disks partitioned under
+  XTIDE Universal BIOS 2.x or on later PCs can be used (see below)
 
 **Configuration:** the XTIDE Universal BIOS configurator (XTIDECFG) only
 recognizes ROMs with its own signature, so it can't configure or flash
@@ -192,6 +194,46 @@ field at offset 59h: bit 0 (`FLG_BUILD_NOBOOTMENU`) is set in `_nomenu`
 images. A configuration program uses this to show only the settings that
 apply. Zero means a full build, so images from before the field existed
 read correctly.
+
+## CHS translation modes
+
+Disks over 504 MB (more than 1024 cylinders) need their geometry
+translated for INT 13h, and different BIOSes do it differently. What has
+to match for a disk to work, and boot, on another machine is the number
+of heads and sectors per track: DOS records them in the partition table
+and the boot sector, and DOS 6.22 boot code reads the disk using them.
+
+Each drive can use one of four modes:
+
+| Mode | Value | Geometry | Matches |
+|------|-------|----------|---------|
+| `rivet` | 0 | Halve cylinders and double heads until there are at most 1024 cylinders (256 heads become 255) | XTIDE Universal BIOS v1.1.5 (the default) |
+| `none` | 1 | The drive's own geometry, at most 1024 cylinders (504 MB) | Pre-1994 BIOSes without translation ("Normal") |
+| `assist` | 2 | Above 1024 cylinders: 63 sectors per track, 16/32/64/128/255 heads by size | XTIDE Universal BIOS 2.x (r610 and later), 486-era "LBA" BIOS setting |
+| `255` | 3 | Always 255 heads, 63 sectors per track | Later PCs, and disks partitioned by Windows or Linux tools |
+
+For the common CF cards and drives (16 heads, 63 sectors per track), the
+`rivet` and `assist` modes give the same geometry. They differ for drives
+with other geometries. XTIDE Universal BIOS 2.x builds from about 2013 to
+r609 (May 2021) also translated drives of 1024 cylinders or less; disks
+partitioned with those may need repartitioning, as upstream warned when
+it fixed that.
+
+The `assist` and `255` modes need a drive that supports LBA, and no user
+specified CHS. Otherwise the drive uses mode `rivet`.
+
+The mode is stored per drive in the ROM header (`DRVPARAMS.bXlateMode`).
+Until the configuration program exists, `Tools/set_xlate.py` sets it in
+an image and fixes the checksum:
+
+```
+python3 Tools/set_xlate.py Build/rivet_xt.bin 0 master 255
+```
+
+`make emutest` checks each mode's geometry (INT 13h AH=08h) and which
+sector every CHS address reaches, against a model of each mode
+(`Tools/xlate_test.py`). With the default mode, the geometry and sector
+mapping are the same as v1.1.5's.
 
 ## Contributing
 

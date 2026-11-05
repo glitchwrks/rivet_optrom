@@ -3,6 +3,7 @@
 ; Created date	:	23.3.2010
 ; Last update	:	10.4.2010
 ; Author		:	Tomi Tilli
+; Modified		:	2026 by Glitch Works, LLC for Rivet (see git history)
 ; Description	:	Defines for DPT structs containing custom
 ;					Disk Parameter Table used by this BIOS.
 %ifndef CUSTOMDPT_INC
@@ -35,6 +36,11 @@ struc DPT
 	.wSetAndMaxBlock:
 	.bSetBlock	resb	1	; Currect block size (at least 1)
 	.bMaxBlock	resb	1	; Maximum block size, 0 = block mode not supported
+
+	; L-CHS geometry reported by INT 13h (see XLATE_MODE_xxx)
+	.wLCyls		resb	2	; Number of L-CHS Cylinders (1...1024)
+	.bLSect		resb	1	; Number of L-CHS Sectors per Track (1...63)
+				resb	1	; Alignment
 endstruc
 
 ; Bit definitions for DPT.bFlags
@@ -43,6 +49,7 @@ FLG_DPT_EBIOS		EQU		(1<<0)	; EBIOS functions supported for this drive
 FLG_DPT_FIRSTPART	EQU		(1<<3)	; First BIOS Partition of the drive (drive reset allowed)
 FLG_DPT_PARTITION	EQU		(1<<4)	; BIOS Partition
 FLG_DPT_USERCHS		EQU		(1<<5)	; User has specified P-CHS parameters
+FLG_DPT_LBAXLATE	EQU		(1<<6)	; L-CHS geometry needs LBA addressing
 
 ; Values for different addressing modes (MASK_DPT_ADDR for DPT.bFlags)
 ADDR_DPT_LCHS		EQU		0		; L-CHS Addressing Mode (NORMAL in many other BIOSes)
