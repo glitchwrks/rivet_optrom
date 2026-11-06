@@ -96,18 +96,15 @@ def assemble():
 
 
 # ----- reference model of the modes (heads/SPT are what matter)
-def model(mode, c, h, s, lba=True, lba_total=None, user_chs=False, part=None):
+def model(mode, c, h, s, lba=True, lba_total=None, user_chs=False, expect=None):
     """Returns (cylinders, heads, sectors per track) that AH=08h reports
-    (as counts), for the drive's P-CHS c/h/s. part is the partition entry
-    model for AUTO: see entries()."""
+    (as counts), for the drive's P-CHS c/h/s. expect is the (heads, spt)
+    AUTO should take from the partition table, or None for the default."""
     total = lba_total or c * h * s
     lba_ok = lba and not user_chs
-    # AUTO takes the first used entry whose start CHS gives its start LBA
-    good = [e for e in entries(part) if e[3] and e[2]] if mode == AUTO and lba_ok else []
-    if good:
-        ph, ps = good[0][0], good[0][1]
-        if 1 <= ph <= 255 and 1 <= ps <= 63 and total // (ph * ps):
-            return min(total // (ph * ps), 1024), ph, ps
+    # AUTO: expect is the (heads, spt) the partition table should give
+    if mode == AUTO and lba_ok and expect and total // (expect[0] * expect[1]):
+        return min(total // (expect[0] * expect[1]), 1024), expect[0], expect[1]
     if mode == NONE:
         return min(c, 1024), h, s
     if mode == LBA_255 and lba_ok and total // (255 * 63) > 0:
@@ -140,34 +137,41 @@ ROMVARS_FLAGS = 0x50
 FLG_ROMVARS_MAXSIZE = 0x20
 
 
-def entries(part):
-    """Partition entries as (heads, spt, consistent, type): part is None,
-    one (heads, spt, consistent[, type]) or a list of them."""
-    if not part:
-        return []
-    return [tuple(e) + (6,) * (4 - len(e))
-            for e in (part if isinstance(part, list) else [part])]
+def chs_bytes(cyl, head, sect):
+    return bytes([head, sect | ((cyl >> 2) & 0xC0), cyl & 0xFF])
 
 
-def part_entry(heads, spt, consistent=True, start=(0, 1, 1), ptype=6):
-    """A DOS-style partition entry ending on a cylinder boundary."""
-    def enc(cyl, head, sect):
-        return bytes([head, sect | ((cyl >> 2) & 0xC0), cyl & 0xFF])
-    sc, sh, ss = start
-    lba = (sc * heads + sh) * spt + ss - 1 + (0 if consistent else 1)
-    return (b'\x80' + enc(sc, sh, ss) + bytes([ptype]) + enc(5, heads - 1, spt) +
+def dos_entry(heads, spt, consistent=True, ptype=6):
+    """A DOS FDISK style entry: starts at 0/1/1, ends on a cylinder
+    boundary (cylinder 5). An inconsistent one has its start LBA off by 1."""
+    lba = spt + (0 if consistent else 1)
+    return (b'\x80' + chs_bytes(0, 1, 1) + bytes([ptype]) + chs_bytes(5, heads - 1, spt) +
             lba.to_bytes(4, 'little') + (6 * heads * spt - lba).to_bytes(4, 'little'))
 
 
-def run_case(rom, mode, geom, lba=True, lba_total=None, maxsize=True, part=None):
-    """part: partition entries, see entries()."""
+def lba_entry(heads, spt, start, size, ptype=6):
+    """An entry made by a later tool for start/size in sectors, CHS from
+    heads/spt, clamped at 1023/heads-1/spt past cylinder 1023."""
+    def chs(lba):
+        cyl, rest = divmod(lba, heads * spt)
+        if cyl > 1023:
+            return chs_bytes(1023, heads - 1, spt)
+        return chs_bytes(cyl, rest // spt, rest % spt + 1)
+    return (b'\x80' + chs(start) + bytes([ptype]) + chs(start + size - 1) +
+            start.to_bytes(4, 'little') + size.to_bytes(4, 'little'))
+
+
+def run_case(rom, mode, geom, lba=True, lba_total=None, maxsize=True, part=(),
+             expect=None):
+    """part: raw 16-byte partition entries for sector 0. expect: what
+    AUTO should take from them, see model()."""
     c, h, s = geom
     image = bytearray(rom)
     image[xlate_mode_offset(rom)] = mode
     if not maxsize:
         image[ROMVARS_FLAGS] &= ~FLG_ROMVARS_MAXSIZE
     image[-1] = (-sum(image[:-1])) & 0xFF
-    lc, lh, ls = model(mode, c, h, s, lba, lba_total, part=part)
+    lc, lh, ls = model(mode, c, h, s, lba, lba_total, expect=expect)
     if not maxsize and lc > 1:
         lc -= 1             # Diagnostic cylinder reserved (never the only one)
     pts = addresses(lc, lh, ls)
@@ -177,8 +181,8 @@ def run_case(rom, mode, geom, lba=True, lba_total=None, maxsize=True, part=None)
         cx = ((cyl & 0xFF) << 8) | ((cyl >> 2) & 0xC0) | sect
         tbl += cx.to_bytes(2, 'little') + bytes([0, head])
     boot[TABLE_OFS:TABLE_OFS + len(tbl)] = tbl
-    for n, (ph, ps, cons, ptype) in enumerate(entries(part)):
-        boot[446 + 16 * n:462 + 16 * n] = part_entry(min(ph, 256), ps, cons, ptype=ptype)
+    for n, entry in enumerate(part):
+        boot[446 + 16 * n:462 + 16 * n] = entry
     boot[510:512] = b'\x55\xAA'
     drive = xtemu.AtaDrive('RIVET XLATE TEST', c, h, s, lba=lba,
                            lba_total=lba_total, tagged=True)
@@ -239,29 +243,85 @@ def check_rom(path, failures, reference=None, maxsize_variants=(True, False)):
                     failures.append(f'{what}: differs from reference ROM')
 
 
-AUTO_CASES = [  # (label, geometry, lba, lba_total, partition (heads, spt, consistent))
-    ('2GB card made at 255/63', (4160, 16, 63), True, None, (255, 63, True)),
-    ('512MB card made at 16/63', (993, 16, 63), True, None, (16, 63, True)),
-    ('2GB card made at 128/63', (4160, 16, 63), True, None, (128, 63, True)),
-    ('odd 2000/4/32 made at 16/63', (2000, 4, 32), True, None, (16, 63, True)),
-    ('no partition table', (1986, 16, 63), True, None, None),
-    ('inconsistent entry', (1986, 16, 63), True, None, (255, 63, False)),
-    ('no LBA, made at 255/63', (2000, 16, 32), False, None, (255, 63, True)),
-    ('20GB made at 255/63', (16383, 16, 63), True, 39070080, (255, 63, True)),
-    ('64MB 490/8/32 card made at 16/63', (490, 8, 32), True, None, (16, 63, True)),
+MIB = 2048     # sectors
+
+
+def whole(heads, spt):
+    """1 MiB aligned partition over the whole disk, as Linux or Windows
+    make it, laid out at heads/spt."""
+    return lambda total: [lba_entry(heads, spt, MIB, total - MIB)]
+
+
+AUTO_CASES = [  # (label, geometry, lba, lba_total, entries(total), expected heads/spt)
+    # DOS FDISK style
+    ('2GB card made at 255/63', (4160, 16, 63), True, None,
+     lambda t: [dos_entry(255, 63)], (255, 63)),
+    ('512MB card made at 16/63', (993, 16, 63), True, None,
+     lambda t: [dos_entry(16, 63)], (16, 63)),
+    ('2GB card made at 128/63', (4160, 16, 63), True, None,
+     lambda t: [dos_entry(128, 63)], (128, 63)),
+    ('odd 2000/4/32 made at 16/63', (2000, 4, 32), True, None,
+     lambda t: [dos_entry(16, 63)], (16, 63)),
+    ('64MB 490/8/32 card made at 16/63', (490, 8, 32), True, None,
+     lambda t: [dos_entry(16, 63)], (16, 63)),
+    ('no LBA, made at 255/63', (2000, 16, 32), False, None,
+     lambda t: [dos_entry(255, 63)], None),
+    ('20GB made at 255/63', (16383, 16, 63), True, 39070080,
+     lambda t: [dos_entry(255, 63)], (255, 63)),
+    # Later tools: 1 MiB aligned, ending wherever the size ends
+    ('2GB card, whole disk at 255/63', (4160, 16, 63), True, None, whole(255, 63), (255, 63)),
+    ('512MB card, whole disk at 255/63', (993, 16, 63), True, None, whole(255, 63), (255, 63)),
+    ('4GB card, whole disk at 255/63', (7964, 16, 63), True, None, whole(255, 63), (255, 63)),
+    ('64MB 490/8/32 card, whole disk at 255/63', (490, 8, 32), True, None,
+     whole(255, 63), (255, 63)),
+    ('64MB 490/8/32 card, whole disk at 64/32', (490, 8, 32), True, None,
+     whole(64, 32), (64, 32)),
+    ('20GB, whole disk at 255/63 (end clamped)', (16383, 16, 63), True, 39070080,
+     whole(255, 63), (255, 63)),
+    ('62MiB partition at 255/63', (1986, 16, 63), True, None,
+     lambda t: [lba_entry(255, 63, MIB, 62 * MIB)], (255, 63)),
+    ('16/63 partition ending mid-cylinder', (1986, 16, 63), True, None,
+     lambda t: [lba_entry(16, 63, 63, 10 * 1008 + 8 * 63 - 63)], (16, 63)),
+    ('start at cylinder 1 at 255/63', (1986, 16, 63), True, None,
+     lambda t: [lba_entry(255, 63, 16065, 100000)], (255, 63)),
+    ('start at cylinder 5 at 16/63', (1986, 16, 63), True, None,
+     lambda t: [lba_entry(16, 63, 5 * 1008, 100000)], (16, 63)),
+    ('start and end at head 0: only heads * SPT fixed', (1986, 16, 63), True, None,
+     lambda t: [lba_entry(16, 63, 5 * 1008, 15 * 1008 + 9)], (16, 63)),
+    # Unusable tables: the default geometry stays. (A missing 55AA can't
+    # be tested here: the test program in sector 0 needs it to boot.)
+    ('no partition table', (1986, 16, 63), True, None, lambda t: [], None),
+    ('inconsistent entry', (1986, 16, 63), True, None,
+     lambda t: [dos_entry(255, 63, False)], None),
+    ('partition within cylinder 0', (1986, 16, 63), True, None,
+     lambda t: [lba_entry(255, 63, 63, 1000)], None),
+    ('start head 0', (1986, 16, 63), True, None,
+     lambda t: [lba_entry(255, 63, 1, 100000)], None),
+    ('clamped end, 256 heads', (16383, 16, 63), True, 39070080,
+     lambda t: [lba_entry(255, 63, MIB, t - MIB)[:5] + chs_bytes(1023, 255, 63)
+                + lba_entry(255, 63, MIB, t - MIB)[8:]], None),
+    ('end head 255 (256 heads)', (1986, 16, 63), True, None,
+     lambda t: [dos_entry(256, 63)], None),
+    # Several entries: the first usable one counts
     ('first entry inconsistent, second used', (1986, 16, 63), True, None,
-     [(128, 63, False), (255, 63, True)]),
+     lambda t: [dos_entry(128, 63, False), dos_entry(255, 63)], (255, 63)),
     ('unused entry skipped', (1986, 16, 63), True, None,
-     [(128, 63, True, 0), (255, 63, True)]),
+     lambda t: [dos_entry(128, 63, ptype=0), dos_entry(255, 63)], (255, 63)),
+    ('256-head entry skipped', (1986, 16, 63), True, None,
+     lambda t: [dos_entry(256, 63), dos_entry(16, 63)], (16, 63)),
+    ('cylinder 0 entry skipped', (1986, 16, 63), True, None,
+     lambda t: [lba_entry(128, 63, 63, 1000), whole(255, 63)(t)[0]], (255, 63)),
 ]
 
 
 def check_auto(path, failures):
     rom = open(path, 'rb').read()
     name = os.path.basename(path)
-    for label, geom, lba, total, part in AUTO_CASES:
+    for label, geom, lba, total, make, expect in AUTO_CASES:
         what = f'{name} auto {label}'
-        res, want, got, reads = run_case(rom, AUTO, geom, lba, total, part=part)
+        c, h, s = geom
+        res, want, got, reads = run_case(rom, AUTO, geom, lba, total,
+                                         part=make(total or c * h * s), expect=expect)
         if res != ('int18', None):
             failures.append(f'{what}: run ended {res}')
             continue

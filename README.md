@@ -222,7 +222,7 @@ Each drive can use one of five modes:
 | `none` | 1 | The drive's own geometry, at most 1024 cylinders (504 MB) | Pre-1994 BIOSes without translation ("Normal") |
 | `assist` | 2 | Above 1024 cylinders: 63 sectors per track, 16/32/64/128/255 heads by size | XTIDE Universal BIOS 2.x (r610 and later), 486-era "LBA" BIOS setting |
 | `255` | 3 | Always 255 heads, 63 sectors per track | Later PCs, and disks partitioned by Windows or Linux tools |
-| `auto` | 4 | Heads and sectors per track from the disk's own partition table; otherwise as `rivet` | Whatever the disk was partitioned with |
+| `auto` | 4 | Heads and sectors per track from the disk's own partition table; otherwise as `rivet` | Disks partitioned elsewhere, by DOS FDISK or later tools |
 
 For the common CF cards and drives (16 heads, 63 sectors per track), the
 `rivet` and `assist` modes give the same geometry. They differ for drives
@@ -234,13 +234,17 @@ it fixed that.
 The `assist`, `255` and `auto` modes need a drive that supports LBA, and
 no user specified CHS. Otherwise the drive uses mode `rivet`.
 
-`auto` reads the MBR when the drive is detected. DOS FDISK ends partitions
-on a cylinder boundary, so a partition's end address gives the heads and
-sectors per track it was made with. An entry is only used if its start
-address gives its start LBA with that geometry, so a blank disk, a missing
-partition table, or an entry that doesn't add up all fall back to
-`rivet`. This lets one setting serve disks partitioned on different
-machines; a disk that is repartitioned is picked up at the next boot.
+`auto` reads the MBR when the drive is detected and looks for the
+geometry under which the first usable partition entry adds up: its start
+CHS address gives its start LBA, and its end CHS address gives its end
+LBA. That works for partitions made by DOS FDISK (starting at 0/1/1 and
+ending on a cylinder boundary) and for the 1 MiB aligned partitions that
+later Windows and Linux tools make, which end wherever the size ends; an
+end address clamped at cylinder 1023 (disks over 8 GB) gives 255 heads
+the usual way. A blank disk, a missing partition table, or entries that
+don't add up under any geometry all fall back to `rivet`. This lets one
+setting serve disks partitioned on different machines; a disk that is
+repartitioned is picked up at the next boot.
 
 The mode is stored per drive in the ROM header (`DRVPARAMS.bXlateMode`).
 Until the configuration program exists, `Tools/set_xlate.py` sets it in

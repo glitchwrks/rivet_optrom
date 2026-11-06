@@ -98,7 +98,7 @@ def make_image(tmp, nsect=40000, data_until=None):
     sectors = [bytes(rnd.getrandbits(8) for _ in range(512)) if n < data_until
                else bytes(512) for n in range(nsect)]
     mbr = bytearray(512)
-    mbr[446:462] = xlate_test.part_entry(255, 63)
+    mbr[446:462] = xlate_test.dos_entry(255, 63)
     mbr[510:512] = b'\x55\xAA'
     sectors[0] = bytes(mbr)
     path = os.path.join(tmp, 'test.img')
