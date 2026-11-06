@@ -288,6 +288,11 @@ AUTO_CASES = [  # (label, geometry, lba, lba_total, entries(total), expected hea
      lambda t: [lba_entry(16, 63, 5 * 1008, 100000)], (16, 63)),
     ('start and end at head 0: only heads * SPT fixed', (1986, 16, 63), True, None,
      lambda t: [lba_entry(16, 63, 5 * 1008, 15 * 1008 + 9)], (16, 63)),
+    # Real ends inside cylinder 1023 are not clamps
+    ('255/63 partition really ending in cylinder 1023', (16383, 16, 63), True, 39070080,
+     lambda t: [lba_entry(255, 63, MIB, ((1023 * 255 + 100) * 63 + 9) - MIB + 1)], (255, 63)),
+    ('128/63 partition really ending in cylinder 1023', (15880, 16, 63), True, None,
+     lambda t: [lba_entry(128, 63, 63, ((1023 * 128 + 102) * 63 + 19) - 63 + 1)], (128, 63)),
     # Unusable tables: the default geometry stays. (A missing 55AA can't
     # be tested here: the test program in sector 0 needs it to boot.)
     ('no partition table', (1986, 16, 63), True, None, lambda t: [], None),
@@ -300,6 +305,8 @@ AUTO_CASES = [  # (label, geometry, lba, lba_total, entries(total), expected hea
     ('clamped end, 256 heads', (16383, 16, 63), True, 39070080,
      lambda t: [lba_entry(255, 63, MIB, t - MIB)[:5] + chs_bytes(1023, 255, 63)
                 + lba_entry(255, 63, MIB, t - MIB)[8:]], None),
+    ('head 0 at both ends with 17 SPT: ambiguous', (1000, 16, 17), True, None,
+     lambda t: [lba_entry(16, 17, 5 * 272, 15 * 272 + 9)], None),
     ('end head 255 (256 heads)', (1986, 16, 63), True, None,
      lambda t: [dos_entry(256, 63)], None),
     # Several entries: the first usable one counts

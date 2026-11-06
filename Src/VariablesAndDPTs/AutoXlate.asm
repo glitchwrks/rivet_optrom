@@ -144,9 +144,10 @@ AutoXlate_ForDPTinDSDI:
 ; Puts the heads and sectors per track worked out from a partition
 ; entry in the DPT (see AutoXlate_FromPartitionTables). Each head count
 ; from 1 up is tried: the start CHS and start LBA then give the sectors
-; per track, exactly, and the end CHS must give the end LBA. If both
-; start and end are at head 0, only heads * SPT is fixed; trying the
-; smallest head count first then gives the largest SPT up to 63.
+; per track, exactly, and the end CHS must give the end LBA, or be
+; clamped at the last sector of cylinder 1023 with the partition going on
+; past it. If both start and end are at head 0, only heads * SPT is
+; fixed, so only SPT 63 is accepted then.
 ;
 ; AutoXlate_GeometryFromEntryAtESSI
 ;	Parameters:
@@ -209,21 +210,18 @@ AutoXlate_GeometryFromEntryAtESSI:
 	jae		SHORT .NextHeads				; Start sector 0 or past the track
 	mov		[di+DPT.bLSect], al
 
-	; End CHS clamped at cylinder 1023: heads must be end head + 1
-	mov		ax, [es:si+6]
-	and		al, 0C0h
-	cmp		ax, 0FFC0h
-	jne		SHORT .CheckEnd
-	mov		al, [es:si+5]
-	inc		al
-	cmp		al, [di+DPT.wLHeads]
-	jne		SHORT .NextHeads
-	ret										; CF cleared
-
+	; With start and end at head 0, only heads * SPT is fixed: accept
+	; only the usual SPT of 63 then
+	mov		ah, [es:si+1]
+	or		ah, [es:si+5]
+	jnz		SHORT .CheckEnd
+	cmp		al, 63
+	je		SHORT .CheckEnd
 .NextHeadsFromEnd:
 	jmp		SHORT .NextHeads
 
-	; Otherwise the end CHS must give the end LBA
+	; The end CHS must give the end LBA, or be clamped at the last
+	; sector this geometry can address while the partition goes on
 .CheckEnd:
 	mov		cl, [es:si+6]					; End sector and cylinder 9...8
 	mov		ch, [es:si+7]					; End cylinder 7...0
@@ -240,8 +238,24 @@ AutoXlate_GeometryFromEntryAtESSI:
 	sbb		dx, [es:si+10]
 	add		ax, BYTE 1
 	adc		dx, BYTE 0						; DX:AX = Size with this geometry
-	cmp		ax, [es:si+12]
-	jne		SHORT .NextHeadsFromEnd
-	cmp		dx, [es:si+14]
-	jne		SHORT .NextHeadsFromEnd
+	sub		ax, [es:si+12]
+	sbb		dx, [es:si+14]
+	jb		SHORT .EndMayBeClamped			; Partition goes on past the end CHS
+	or		ax, dx
+	jnz		SHORT .NextHeadsFromEnd
+	ret										; CF cleared
+
+.EndMayBeClamped:
+	mov		ax, [es:si+6]
+	and		al, 0C0h
+	cmp		ax, 0FFC0h
+	jne		SHORT .NextHeadsFromEnd			; Not at cylinder 1023
+	mov		al, [es:si+5]
+	inc		al
+	cmp		al, [di+DPT.wLHeads]
+	jne		SHORT .NextHeadsFromEnd			; Not the last head
+	mov		al, [es:si+6]
+	and		al, 3Fh
+	cmp		al, [di+DPT.bLSect]
+	jne		SHORT .NextHeadsFromEnd			; Not the last sector
 	ret										; CF cleared
